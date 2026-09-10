@@ -1,0 +1,2366 @@
+{
+  "state": "Andhra Pradesh",
+  "total_baseline_ambulances": 236,
+  "ambulances": [
+    {
+      "ambulance_id": "AP-108-BASE-0001",
+      "district": "Srikakulam",
+      "station_name": "Srikakulam CHC/PHC Base",
+      "lat": 18.2969,
+      "lng": 83.8968,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Srikakulam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0002",
+      "district": "Srikakulam",
+      "station_name": "Narasannapeta CHC/PHC Base",
+      "lat": 18.3826,
+      "lng": 83.94452,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Narasannapeta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0003",
+      "district": "Srikakulam",
+      "station_name": "Amadalavalasa CHC/PHC Base",
+      "lat": 18.4019,
+      "lng": 84.15868,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Amadalavalasa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0004",
+      "district": "Srikakulam",
+      "station_name": "Etcherla CHC/PHC Base",
+      "lat": 18.20296,
+      "lng": 84.18587,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Etcherla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0005",
+      "district": "Srikakulam",
+      "station_name": "Kotabommali CHC/PHC Base",
+      "lat": 18.16446,
+      "lng": 83.97637,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kotabommali",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0006",
+      "district": "Srikakulam",
+      "station_name": "Nandigam CHC/PHC Base",
+      "lat": 17.95799,
+      "lng": 83.90971,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nandigam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0007",
+      "district": "Srikakulam",
+      "station_name": "Mandasa CHC/PHC Base",
+      "lat": 18.07646,
+      "lng": 83.6756,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Mandasa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0008",
+      "district": "Srikakulam",
+      "station_name": "Kaviti CHC/PHC Base",
+      "lat": 18.25502,
+      "lng": 83.74848,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kaviti",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0009",
+      "district": "Srikakulam",
+      "station_name": "Kothuru CHC/PHC Base",
+      "lat": 18.42874,
+      "lng": 83.61332,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kothuru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0010",
+      "district": "Srikakulam",
+      "station_name": "Saravakota CHC/PHC Base",
+      "lat": 18.5651,
+      "lng": 83.74534,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Saravakota",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0011",
+      "district": "Vizianagaram",
+      "station_name": "Vizianagaram CHC/PHC Base",
+      "lat": 18.1133,
+      "lng": 83.4072,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vizianagaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0012",
+      "district": "Vizianagaram",
+      "station_name": "Bhogapuram CHC/PHC Base",
+      "lat": 18.20268,
+      "lng": 83.47433,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bhogapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0013",
+      "district": "Vizianagaram",
+      "station_name": "Gurla CHC/PHC Base",
+      "lat": 18.1237,
+      "lng": 83.58114,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gurla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0014",
+      "district": "Vizianagaram",
+      "station_name": "Garividi CHC/PHC Base",
+      "lat": 18.05761,
+      "lng": 83.50274,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Garividi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0015",
+      "district": "Vizianagaram",
+      "station_name": "Vangara CHC/PHC Base",
+      "lat": 17.82415,
+      "lng": 83.55769,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vangara",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0016",
+      "district": "Vizianagaram",
+      "station_name": "Gajapathinagaram CHC/PHC Base",
+      "lat": 17.89185,
+      "lng": 83.30377,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gajapathinagaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0017",
+      "district": "Vizianagaram",
+      "station_name": "Bobbili CHC/PHC Base",
+      "lat": 18.08966,
+      "lng": 83.35018,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bobbili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0018",
+      "district": "Vizianagaram",
+      "station_name": "Ramabhadrapuram CHC/PHC Base",
+      "lat": 18.1305,
+      "lng": 83.30194,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ramabhadrapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0019",
+      "district": "Vizianagaram",
+      "station_name": "Kothavalasa CHC/PHC Base",
+      "lat": 18.26071,
+      "lng": 83.2894,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kothavalasa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0020",
+      "district": "Parvathipuram Manyam",
+      "station_name": "Parvathipuram CHC/PHC Base",
+      "lat": 18.7796,
+      "lng": 83.4284,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Parvathipuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0021",
+      "district": "Parvathipuram Manyam",
+      "station_name": "Salur Rural CHC/PHC Base",
+      "lat": 18.88873,
+      "lng": 83.75113,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Salur Rural",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0022",
+      "district": "Parvathipuram Manyam",
+      "station_name": "Komarada CHC/PHC Base",
+      "lat": 18.58708,
+      "lng": 83.60568,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Komarada",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0023",
+      "district": "Parvathipuram Manyam",
+      "station_name": "Kurupam CHC/PHC Base",
+      "lat": 18.50053,
+      "lng": 83.21983,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kurupam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0024",
+      "district": "Parvathipuram Manyam",
+      "station_name": "Palakonda CHC/PHC Base",
+      "lat": 18.84077,
+      "lng": 83.12745,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Palakonda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0025",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Paderu CHC/PHC Base",
+      "lat": 18.0827,
+      "lng": 82.6657,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Paderu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0026",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Dumbriguda CHC/PHC Base",
+      "lat": 18.24838,
+      "lng": 82.83399,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Dumbriguda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0027",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Munchingiputtu CHC/PHC Base",
+      "lat": 18.08437,
+      "lng": 82.95207,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Munchingiputtu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0028",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "G.K. Veedhi CHC/PHC Base",
+      "lat": 17.83519,
+      "lng": 82.82804,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "G.K. Veedhi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0029",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Devipatnam CHC/PHC Base",
+      "lat": 17.99045,
+      "lng": 82.62406,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Devipatnam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0030",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Gangavaram Agency CHC/PHC Base",
+      "lat": 18.0026,
+      "lng": 82.37866,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gangavaram Agency",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0031",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Kunavaram CHC/PHC Base",
+      "lat": 18.17995,
+      "lng": 82.39262,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kunavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0032",
+      "district": "Alluri Sitharama Raju",
+      "station_name": "Yetapaka CHC/PHC Base",
+      "lat": 18.3049,
+      "lng": 82.57538,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yetapaka",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0033",
+      "district": "Visakhapatnam",
+      "station_name": "Visakhapatnam Rural CHC/PHC Base",
+      "lat": 17.6868,
+      "lng": 83.2185,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Visakhapatnam Rural",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0034",
+      "district": "Visakhapatnam",
+      "station_name": "Padmanabham CHC/PHC Base",
+      "lat": 17.67324,
+      "lng": 83.26656,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Padmanabham",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0035",
+      "district": "Visakhapatnam",
+      "station_name": "Gajuwaka CHC/PHC Base",
+      "lat": 17.65244,
+      "lng": 83.20541,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gajuwaka",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0036",
+      "district": "Visakhapatnam",
+      "station_name": "Mulagada CHC/PHC Base",
+      "lat": 17.78361,
+      "lng": 82.90749,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Mulagada",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0037",
+      "district": "Anakapalli",
+      "station_name": "Anakapalli CHC/PHC Base",
+      "lat": 17.6913,
+      "lng": 83.0039,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Anakapalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0038",
+      "district": "Anakapalli",
+      "station_name": "Parawada CHC/PHC Base",
+      "lat": 17.85452,
+      "lng": 83.18365,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Parawada",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0039",
+      "district": "Anakapalli",
+      "station_name": "Butchayyapeta CHC/PHC Base",
+      "lat": 17.6767,
+      "lng": 83.1162,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Butchayyapeta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0040",
+      "district": "Anakapalli",
+      "station_name": "Madugula CHC/PHC Base",
+      "lat": 17.53707,
+      "lng": 83.19277,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Madugula",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0041",
+      "district": "Anakapalli",
+      "station_name": "K.Kotapadu CHC/PHC Base",
+      "lat": 17.40981,
+      "lng": 83.00776,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "K.Kotapadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0042",
+      "district": "Anakapalli",
+      "station_name": "Nathavaram CHC/PHC Base",
+      "lat": 17.56213,
+      "lng": 82.83836,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nathavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0043",
+      "district": "Anakapalli",
+      "station_name": "Yelamanchili CHC/PHC Base",
+      "lat": 17.67795,
+      "lng": 82.8252,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yelamanchili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0044",
+      "district": "Anakapalli",
+      "station_name": "S.Rayavaram CHC/PHC Base",
+      "lat": 17.78926,
+      "lng": 82.86994,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "S.Rayavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0045",
+      "district": "Kakinada",
+      "station_name": "Kakinada Urban CHC/PHC Base",
+      "lat": 16.9891,
+      "lng": 82.2475,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kakinada Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0046",
+      "district": "Kakinada",
+      "station_name": "Karapa CHC/PHC Base",
+      "lat": 17.10557,
+      "lng": 82.37631,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Karapa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0047",
+      "district": "Kakinada",
+      "station_name": "Kajuluru CHC/PHC Base",
+      "lat": 16.97619,
+      "lng": 82.41082,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kajuluru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0048",
+      "district": "Kakinada",
+      "station_name": "U.Kothapalli CHC/PHC Base",
+      "lat": 16.86433,
+      "lng": 82.31253,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "U.Kothapalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0049",
+      "district": "Kakinada",
+      "station_name": "Prathipadu CHC/PHC Base",
+      "lat": 16.67755,
+      "lng": 82.14156,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Prathipadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0050",
+      "district": "Kakinada",
+      "station_name": "Rowthulapudi CHC/PHC Base",
+      "lat": 16.93509,
+      "lng": 82.06676,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rowthulapudi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0051",
+      "district": "Kakinada",
+      "station_name": "Gandepalli CHC/PHC Base",
+      "lat": 17.04827,
+      "lng": 82.18195,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gandepalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0052",
+      "district": "East Godavari",
+      "station_name": "Rajahmundry Urban CHC/PHC Base",
+      "lat": 17.0005,
+      "lng": 81.804,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rajahmundry Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0053",
+      "district": "East Godavari",
+      "station_name": "Rajanagaram CHC/PHC Base",
+      "lat": 17.10604,
+      "lng": 81.96439,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rajanagaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0054",
+      "district": "East Godavari",
+      "station_name": "Gokavaram CHC/PHC Base",
+      "lat": 16.91562,
+      "lng": 81.96812,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gokavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0055",
+      "district": "East Godavari",
+      "station_name": "Tallapudi CHC/PHC Base",
+      "lat": 16.7623,
+      "lng": 81.84022,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Tallapudi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0056",
+      "district": "East Godavari",
+      "station_name": "Peravali CHC/PHC Base",
+      "lat": 16.96485,
+      "lng": 81.75062,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peravali",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0057",
+      "district": "East Godavari",
+      "station_name": "Rangampeta CHC/PHC Base",
+      "lat": 17.04124,
+      "lng": 81.5573,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rangampeta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0058",
+      "district": "East Godavari",
+      "station_name": "Nallajerla CHC/PHC Base",
+      "lat": 17.06676,
+      "lng": 81.77282,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nallajerla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0059",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Amalapuram CHC/PHC Base",
+      "lat": 16.5787,
+      "lng": 82.0061,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Amalapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0060",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Katrenikona CHC/PHC Base",
+      "lat": 16.75536,
+      "lng": 82.19493,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Katrenikona",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0061",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Ainavilli CHC/PHC Base",
+      "lat": 16.54916,
+      "lng": 82.19117,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ainavilli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0062",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Malikipuram CHC/PHC Base",
+      "lat": 16.36848,
+      "lng": 82.14,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Malikipuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0063",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Kothapeta CHC/PHC Base",
+      "lat": 16.43638,
+      "lng": 81.94879,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kothapeta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0064",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "P.Gannavaram CHC/PHC Base",
+      "lat": 16.5498,
+      "lng": 81.90656,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "P.Gannavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0065",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "K.Gangavaram CHC/PHC Base",
+      "lat": 16.61695,
+      "lng": 81.9019,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "K.Gangavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0066",
+      "district": "Dr. B.R. Ambedkar Konaseema",
+      "station_name": "Kapileswarapuram CHC/PHC Base",
+      "lat": 16.8917,
+      "lng": 81.92713,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kapileswarapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0067",
+      "district": "Eluru",
+      "station_name": "Eluru CHC/PHC Base",
+      "lat": 16.7107,
+      "lng": 81.0952,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Eluru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0068",
+      "district": "Eluru",
+      "station_name": "Pedapadu CHC/PHC Base",
+      "lat": 16.81245,
+      "lng": 81.1783,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Pedapadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0069",
+      "district": "Eluru",
+      "station_name": "Nidamarru CHC/PHC Base",
+      "lat": 16.80798,
+      "lng": 81.35849,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nidamarru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0070",
+      "district": "Eluru",
+      "station_name": "Buttayagudem CHC/PHC Base",
+      "lat": 16.59182,
+      "lng": 81.36615,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Buttayagudem",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0071",
+      "district": "Eluru",
+      "station_name": "Kamavarapukota CHC/PHC Base",
+      "lat": 16.5189,
+      "lng": 81.16937,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kamavarapukota",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0072",
+      "district": "Eluru",
+      "station_name": "Chintalapudi CHC/PHC Base",
+      "lat": 16.51666,
+      "lng": 81.07678,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chintalapudi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0073",
+      "district": "Eluru",
+      "station_name": "Kaikalur CHC/PHC Base",
+      "lat": 16.59796,
+      "lng": 80.89487,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kaikalur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0074",
+      "district": "Eluru",
+      "station_name": "Musunuru CHC/PHC Base",
+      "lat": 16.69089,
+      "lng": 80.79132,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Musunuru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0075",
+      "district": "Eluru",
+      "station_name": "Chatrai CHC/PHC Base",
+      "lat": 16.79186,
+      "lng": 81.00595,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chatrai",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0076",
+      "district": "Eluru",
+      "station_name": "Kovvur Agency CHC/PHC Base",
+      "lat": 16.9703,
+      "lng": 81.01882,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kovvur Agency",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0077",
+      "district": "West Godavari",
+      "station_name": "Bhimavaram CHC/PHC Base",
+      "lat": 16.5449,
+      "lng": 81.5212,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bhimavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0078",
+      "district": "West Godavari",
+      "station_name": "Yelamanchili Godavari CHC/PHC Base",
+      "lat": 16.69011,
+      "lng": 81.77997,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yelamanchili Godavari",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0079",
+      "district": "West Godavari",
+      "station_name": "Penugonda CHC/PHC Base",
+      "lat": 16.52367,
+      "lng": 81.60187,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Penugonda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0080",
+      "district": "West Godavari",
+      "station_name": "Attili CHC/PHC Base",
+      "lat": 16.24617,
+      "lng": 81.53981,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Attili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0081",
+      "district": "West Godavari",
+      "station_name": "Pentapadu CHC/PHC Base",
+      "lat": 16.39653,
+      "lng": 81.29243,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Pentapadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0082",
+      "district": "West Godavari",
+      "station_name": "Akividu CHC/PHC Base",
+      "lat": 16.55523,
+      "lng": 81.46673,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Akividu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0083",
+      "district": "West Godavari",
+      "station_name": "Narasapuram CHC/PHC Base",
+      "lat": 16.69137,
+      "lng": 81.4743,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Narasapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0084",
+      "district": "NTR",
+      "station_name": "Vijayawada Urban CHC/PHC Base",
+      "lat": 16.5062,
+      "lng": 80.648,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vijayawada Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0085",
+      "district": "NTR",
+      "station_name": "Vijayawada East CHC/PHC Base",
+      "lat": 16.66695,
+      "lng": 80.95877,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vijayawada East",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0086",
+      "district": "NTR",
+      "station_name": "G.Konduru CHC/PHC Base",
+      "lat": 16.44305,
+      "lng": 80.79823,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "G.Konduru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0087",
+      "district": "NTR",
+      "station_name": "Vijayawada North CHC/PHC Base",
+      "lat": 16.41931,
+      "lng": 80.68615,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vijayawada North",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0088",
+      "district": "NTR",
+      "station_name": "Paritala CHC/PHC Base",
+      "lat": 16.42586,
+      "lng": 80.59031,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Paritala",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0089",
+      "district": "NTR",
+      "station_name": "Penuganchiprolu CHC/PHC Base",
+      "lat": 16.50275,
+      "lng": 80.57371,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Penuganchiprolu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0090",
+      "district": "NTR",
+      "station_name": "Tiruvuru CHC/PHC Base",
+      "lat": 16.64918,
+      "lng": 80.54214,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Tiruvuru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0091",
+      "district": "Krishna",
+      "station_name": "Machilipatnam CHC/PHC Base",
+      "lat": 16.1875,
+      "lng": 81.1389,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Machilipatnam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0092",
+      "district": "Krishna",
+      "station_name": "Guduru CHC/PHC Base",
+      "lat": 16.26908,
+      "lng": 81.24331,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Guduru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0093",
+      "district": "Krishna",
+      "station_name": "Gudlavalleru CHC/PHC Base",
+      "lat": 16.18668,
+      "lng": 81.2257,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gudlavalleru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0094",
+      "district": "Krishna",
+      "station_name": "Kankipadu CHC/PHC Base",
+      "lat": 16.05452,
+      "lng": 81.35448,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kankipadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0095",
+      "district": "Krishna",
+      "station_name": "Unguturu Krishna CHC/PHC Base",
+      "lat": 16.07694,
+      "lng": 81.14346,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Unguturu Krishna",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0096",
+      "district": "Krishna",
+      "station_name": "Ghantasala CHC/PHC Base",
+      "lat": 16.09172,
+      "lng": 81.06196,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ghantasala",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0097",
+      "district": "Krishna",
+      "station_name": "Avanigadda CHC/PHC Base",
+      "lat": 16.14907,
+      "lng": 81.02348,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Avanigadda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0098",
+      "district": "Krishna",
+      "station_name": "Vuyyuru CHC/PHC Base",
+      "lat": 16.33856,
+      "lng": 80.94758,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vuyyuru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0099",
+      "district": "Krishna",
+      "station_name": "Gudivada CHC/PHC Base",
+      "lat": 16.26522,
+      "lng": 81.11345,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gudivada",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0100",
+      "district": "Palnadu",
+      "station_name": "Narasaraopet CHC/PHC Base",
+      "lat": 16.2359,
+      "lng": 80.0494,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Narasaraopet",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0101",
+      "district": "Palnadu",
+      "station_name": "Chilakaluripet CHC/PHC Base",
+      "lat": 16.40342,
+      "lng": 80.22167,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chilakaluripet",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0102",
+      "district": "Palnadu",
+      "station_name": "Sattenapalle CHC/PHC Base",
+      "lat": 16.25631,
+      "lng": 80.18499,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Sattenapalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0103",
+      "district": "Palnadu",
+      "station_name": "Piduguralla CHC/PHC Base",
+      "lat": 16.13905,
+      "lng": 80.25011,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Piduguralla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0104",
+      "district": "Palnadu",
+      "station_name": "Gurazala CHC/PHC Base",
+      "lat": 16.14372,
+      "lng": 80.0929,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gurazala",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0105",
+      "district": "Palnadu",
+      "station_name": "Veldurthi CHC/PHC Base",
+      "lat": 15.96824,
+      "lng": 79.94231,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Veldurthi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0106",
+      "district": "Palnadu",
+      "station_name": "Bollapalle CHC/PHC Base",
+      "lat": 16.16126,
+      "lng": 79.92168,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bollapalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0107",
+      "district": "Palnadu",
+      "station_name": "Savalyapuram CHC/PHC Base",
+      "lat": 16.23473,
+      "lng": 79.96166,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Savalyapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0108",
+      "district": "Palnadu",
+      "station_name": "Krosuru CHC/PHC Base",
+      "lat": 16.37168,
+      "lng": 79.84481,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Krosuru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0109",
+      "district": "Palnadu",
+      "station_name": "Bellamkonda CHC/PHC Base",
+      "lat": 16.47004,
+      "lng": 79.99271,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bellamkonda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0110",
+      "district": "Guntur",
+      "station_name": "Guntur East CHC/PHC Base",
+      "lat": 16.3067,
+      "lng": 80.4365,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Guntur East",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0111",
+      "district": "Guntur",
+      "station_name": "Pedakakani CHC/PHC Base",
+      "lat": 16.35906,
+      "lng": 80.53315,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Pedakakani",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0112",
+      "district": "Guntur",
+      "station_name": "Prathipadu Guntur CHC/PHC Base",
+      "lat": 16.21595,
+      "lng": 80.5788,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Prathipadu Guntur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0113",
+      "district": "Guntur",
+      "station_name": "Tadepalle CHC/PHC Base",
+      "lat": 16.19672,
+      "lng": 80.42462,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Tadepalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0114",
+      "district": "Guntur",
+      "station_name": "Kollipara CHC/PHC Base",
+      "lat": 16.25075,
+      "lng": 80.29932,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kollipara",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0115",
+      "district": "Guntur",
+      "station_name": "Kakumanu CHC/PHC Base",
+      "lat": 16.4091,
+      "lng": 80.24701,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kakumanu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0116",
+      "district": "Bapatla",
+      "station_name": "Bapatla CHC/PHC Base",
+      "lat": 15.9042,
+      "lng": 80.4674,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bapatla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0117",
+      "district": "Bapatla",
+      "station_name": "Nizampatnam CHC/PHC Base",
+      "lat": 16.14775,
+      "lng": 80.65089,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nizampatnam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0118",
+      "district": "Bapatla",
+      "station_name": "Bhattiprolu CHC/PHC Base",
+      "lat": 15.92631,
+      "lng": 80.7619,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bhattiprolu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0119",
+      "district": "Bapatla",
+      "station_name": "Kollur CHC/PHC Base",
+      "lat": 15.8583,
+      "lng": 80.51053,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kollur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0120",
+      "district": "Bapatla",
+      "station_name": "Chirala CHC/PHC Base",
+      "lat": 15.63441,
+      "lng": 80.51251,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chirala",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0121",
+      "district": "Bapatla",
+      "station_name": "Karamchedu CHC/PHC Base",
+      "lat": 15.72213,
+      "lng": 80.30941,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Karamchedu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0122",
+      "district": "Bapatla",
+      "station_name": "Martur CHC/PHC Base",
+      "lat": 15.89642,
+      "lng": 80.40346,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Martur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0123",
+      "district": "Bapatla",
+      "station_name": "J.Panguluru CHC/PHC Base",
+      "lat": 16.06349,
+      "lng": 80.17,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "J.Panguluru",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0124",
+      "district": "Bapatla",
+      "station_name": "Ballikurava CHC/PHC Base",
+      "lat": 16.03294,
+      "lng": 80.41238,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ballikurava",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0125",
+      "district": "Prakasam",
+      "station_name": "Ongole CHC/PHC Base",
+      "lat": 15.5057,
+      "lng": 80.0499,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ongole",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0126",
+      "district": "Prakasam",
+      "station_name": "Naguluppalapadu CHC/PHC Base",
+      "lat": 15.73574,
+      "lng": 80.18953,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Naguluppalapadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0127",
+      "district": "Prakasam",
+      "station_name": "Chimakurthy CHC/PHC Base",
+      "lat": 15.59759,
+      "lng": 80.17686,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chimakurthy",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0128",
+      "district": "Prakasam",
+      "station_name": "Singarayakonda CHC/PHC Base",
+      "lat": 15.50944,
+      "lng": 80.25125,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Singarayakonda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0129",
+      "district": "Prakasam",
+      "station_name": "Kandukur CHC/PHC Base",
+      "lat": 15.34375,
+      "lng": 80.33757,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kandukur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0130",
+      "district": "Prakasam",
+      "station_name": "Lingasamudram CHC/PHC Base",
+      "lat": 15.44005,
+      "lng": 80.09396,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Lingasamudram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0131",
+      "district": "Prakasam",
+      "station_name": "Podili CHC/PHC Base",
+      "lat": 15.30894,
+      "lng": 80.06981,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Podili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0132",
+      "district": "Prakasam",
+      "station_name": "Donakonda CHC/PHC Base",
+      "lat": 15.26538,
+      "lng": 79.95796,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Donakonda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0133",
+      "district": "Prakasam",
+      "station_name": "Kanigiri CHC/PHC Base",
+      "lat": 15.38856,
+      "lng": 79.89266,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kanigiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0134",
+      "district": "Prakasam",
+      "station_name": "Veligandla CHC/PHC Base",
+      "lat": 15.46521,
+      "lng": 79.81655,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Veligandla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0135",
+      "district": "Prakasam",
+      "station_name": "Tarlupadu CHC/PHC Base",
+      "lat": 15.52768,
+      "lng": 79.95733,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Tarlupadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0136",
+      "district": "Prakasam",
+      "station_name": "Cumbum CHC/PHC Base",
+      "lat": 15.64035,
+      "lng": 79.92431,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Cumbum",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0137",
+      "district": "Prakasam",
+      "station_name": "Ardhaveedu CHC/PHC Base",
+      "lat": 15.80553,
+      "lng": 79.96789,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ardhaveedu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0138",
+      "district": "SPS Nellore",
+      "station_name": "Nellore Urban CHC/PHC Base",
+      "lat": 14.4426,
+      "lng": 79.9865,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nellore Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0139",
+      "district": "SPS Nellore",
+      "station_name": "Buchireddipalem CHC/PHC Base",
+      "lat": 14.58657,
+      "lng": 80.07298,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Buchireddipalem",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0140",
+      "district": "SPS Nellore",
+      "station_name": "Vidavalur CHC/PHC Base",
+      "lat": 14.59271,
+      "lng": 80.16823,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vidavalur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0141",
+      "district": "SPS Nellore",
+      "station_name": "Bogole CHC/PHC Base",
+      "lat": 14.46357,
+      "lng": 80.09624,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Bogole",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0142",
+      "district": "SPS Nellore",
+      "station_name": "Kaligiri CHC/PHC Base",
+      "lat": 14.37787,
+      "lng": 80.13529,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kaligiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0143",
+      "district": "SPS Nellore",
+      "station_name": "Udayagiri CHC/PHC Base",
+      "lat": 14.35862,
+      "lng": 80.04585,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Udayagiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0144",
+      "district": "SPS Nellore",
+      "station_name": "Atmakur Nellore CHC/PHC Base",
+      "lat": 14.1909,
+      "lng": 80.01652,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Atmakur Nellore",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0145",
+      "district": "SPS Nellore",
+      "station_name": "Chejerla CHC/PHC Base",
+      "lat": 14.30388,
+      "lng": 79.93761,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chejerla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0146",
+      "district": "SPS Nellore",
+      "station_name": "Sydapuram CHC/PHC Base",
+      "lat": 14.29474,
+      "lng": 79.82943,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Sydapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0147",
+      "district": "SPS Nellore",
+      "station_name": "Thotapalligudur CHC/PHC Base",
+      "lat": 14.33081,
+      "lng": 79.66368,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Thotapalligudur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0148",
+      "district": "SPS Nellore",
+      "station_name": "Chillakur CHC/PHC Base",
+      "lat": 14.55773,
+      "lng": 79.6891,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chillakur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0149",
+      "district": "SPS Nellore",
+      "station_name": "Chittamur CHC/PHC Base",
+      "lat": 14.63757,
+      "lng": 79.7187,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chittamur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0150",
+      "district": "SPS Nellore",
+      "station_name": "Dakkili CHC/PHC Base",
+      "lat": 14.73577,
+      "lng": 79.83789,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Dakkili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0151",
+      "district": "Kurnool",
+      "station_name": "Kurnool Urban CHC/PHC Base",
+      "lat": 15.8281,
+      "lng": 78.0373,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kurnool Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0152",
+      "district": "Kurnool",
+      "station_name": "Kallur CHC/PHC Base",
+      "lat": 15.90216,
+      "lng": 78.10485,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kallur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0153",
+      "district": "Kurnool",
+      "station_name": "Kodumur CHC/PHC Base",
+      "lat": 15.85927,
+      "lng": 78.22043,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kodumur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0154",
+      "district": "Kurnool",
+      "station_name": "Krishnagiri CHC/PHC Base",
+      "lat": 15.62107,
+      "lng": 78.29371,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Krishnagiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0155",
+      "district": "Kurnool",
+      "station_name": "Peapally CHC/PHC Base",
+      "lat": 15.62424,
+      "lng": 78.10739,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peapally",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0156",
+      "district": "Kurnool",
+      "station_name": "Peddakadubur CHC/PHC Base",
+      "lat": 15.7028,
+      "lng": 77.95519,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peddakadubur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0157",
+      "district": "Kurnool",
+      "station_name": "Mantralayam CHC/PHC Base",
+      "lat": 15.75821,
+      "lng": 77.89894,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Mantralayam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0158",
+      "district": "Kurnool",
+      "station_name": "Holagunda CHC/PHC Base",
+      "lat": 15.91361,
+      "lng": 77.85502,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Holagunda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0159",
+      "district": "Kurnool",
+      "station_name": "Devanakonda Rural CHC/PHC Base",
+      "lat": 16.00004,
+      "lng": 77.94982,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Devanakonda Rural",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0160",
+      "district": "Nandyal",
+      "station_name": "Nandyal CHC/PHC Base",
+      "lat": 15.4886,
+      "lng": 78.4836,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nandyal",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0161",
+      "district": "Nandyal",
+      "station_name": "Allagadda CHC/PHC Base",
+      "lat": 15.68952,
+      "lng": 78.64989,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Allagadda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0162",
+      "district": "Nandyal",
+      "station_name": "Dornipadu CHC/PHC Base",
+      "lat": 15.49807,
+      "lng": 78.55525,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Dornipadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0163",
+      "district": "Nandyal",
+      "station_name": "Banaganapalle CHC/PHC Base",
+      "lat": 15.40542,
+      "lng": 78.66652,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Banaganapalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0164",
+      "district": "Nandyal",
+      "station_name": "Panyam CHC/PHC Base",
+      "lat": 15.27861,
+      "lng": 78.61062,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Panyam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0165",
+      "district": "Nandyal",
+      "station_name": "Mahanandi CHC/PHC Base",
+      "lat": 15.2447,
+      "lng": 78.44021,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Mahanandi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0166",
+      "district": "Nandyal",
+      "station_name": "Sunnipenta CHC/PHC Base",
+      "lat": 15.38828,
+      "lng": 78.35843,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Sunnipenta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0167",
+      "district": "Nandyal",
+      "station_name": "Midthur CHC/PHC Base",
+      "lat": 15.41742,
+      "lng": 78.19226,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Midthur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0168",
+      "district": "Nandyal",
+      "station_name": "Kothapalle CHC/PHC Base",
+      "lat": 15.53092,
+      "lng": 78.38122,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kothapalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0169",
+      "district": "Nandyal",
+      "station_name": "Chagalamarri East CHC/PHC Base",
+      "lat": 15.77172,
+      "lng": 78.36371,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chagalamarri East",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0170",
+      "district": "Ananthapuramu",
+      "station_name": "Anantapur CHC/PHC Base",
+      "lat": 14.6819,
+      "lng": 77.6006,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Anantapur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0171",
+      "district": "Ananthapuramu",
+      "station_name": "Atmakur Anantapur CHC/PHC Base",
+      "lat": 14.83926,
+      "lng": 77.70652,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Atmakur Anantapur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0172",
+      "district": "Ananthapuramu",
+      "station_name": "Putlur CHC/PHC Base",
+      "lat": 14.79482,
+      "lng": 77.91401,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Putlur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0173",
+      "district": "Ananthapuramu",
+      "station_name": "Peddapappur CHC/PHC Base",
+      "lat": 14.61177,
+      "lng": 77.80517,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peddapappur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0174",
+      "district": "Ananthapuramu",
+      "station_name": "Gooty CHC/PHC Base",
+      "lat": 14.60864,
+      "lng": 77.65921,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gooty",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0175",
+      "district": "Ananthapuramu",
+      "station_name": "Vidapanakal CHC/PHC Base",
+      "lat": 14.43404,
+      "lng": 77.61477,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vidapanakal",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0176",
+      "district": "Ananthapuramu",
+      "station_name": "Kalyandurg CHC/PHC Base",
+      "lat": 14.60539,
+      "lng": 77.56746,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kalyandurg",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0177",
+      "district": "Ananthapuramu",
+      "station_name": "Kundurpi CHC/PHC Base",
+      "lat": 14.59614,
+      "lng": 77.41632,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kundurpi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0178",
+      "district": "Ananthapuramu",
+      "station_name": "Raptadu CHC/PHC Base",
+      "lat": 14.72569,
+      "lng": 77.42932,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Raptadu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0179",
+      "district": "Ananthapuramu",
+      "station_name": "Dharmavaram CHC/PHC Base",
+      "lat": 14.82751,
+      "lng": 77.44821,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Dharmavaram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0180",
+      "district": "Ananthapuramu",
+      "station_name": "Yadiki CHC/PHC Base",
+      "lat": 14.97465,
+      "lng": 77.49538,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yadiki",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0181",
+      "district": "Sri Sathya Sai",
+      "station_name": "Puttaparthi CHC/PHC Base",
+      "lat": 14.1681,
+      "lng": 77.8105,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Puttaparthi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0182",
+      "district": "Sri Sathya Sai",
+      "station_name": "Gorantla CHC/PHC Base",
+      "lat": 14.43394,
+      "lng": 77.95288,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gorantla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0183",
+      "district": "Sri Sathya Sai",
+      "station_name": "Hindupur CHC/PHC Base",
+      "lat": 14.23586,
+      "lng": 78.00765,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Hindupur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0184",
+      "district": "Sri Sathya Sai",
+      "station_name": "Roddam CHC/PHC Base",
+      "lat": 14.15476,
+      "lng": 78.05585,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Roddam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0185",
+      "district": "Sri Sathya Sai",
+      "station_name": "Gudibanda CHC/PHC Base",
+      "lat": 14.13582,
+      "lng": 77.84932,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gudibanda",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0186",
+      "district": "Sri Sathya Sai",
+      "station_name": "Parigi CHC/PHC Base",
+      "lat": 13.95577,
+      "lng": 77.86658,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Parigi",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0187",
+      "district": "Sri Sathya Sai",
+      "station_name": "Nambulapulikunta CHC/PHC Base",
+      "lat": 13.90409,
+      "lng": 77.65196,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nambulapulikunta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0188",
+      "district": "Sri Sathya Sai",
+      "station_name": "Nallacheruvu CHC/PHC Base",
+      "lat": 14.07927,
+      "lng": 77.64776,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nallacheruvu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0189",
+      "district": "Sri Sathya Sai",
+      "station_name": "Nallamada CHC/PHC Base",
+      "lat": 14.14729,
+      "lng": 77.56998,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nallamada",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0190",
+      "district": "Sri Sathya Sai",
+      "station_name": "Kanaganapalli South CHC/PHC Base",
+      "lat": 14.27237,
+      "lng": 77.65555,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kanaganapalli South",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0191",
+      "district": "Sri Sathya Sai",
+      "station_name": "Hindupur Rural CHC/PHC Base",
+      "lat": 14.31705,
+      "lng": 77.75761,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Hindupur Rural",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0192",
+      "district": "YSR Kadapa",
+      "station_name": "Kadapa CHC/PHC Base",
+      "lat": 14.4673,
+      "lng": 78.8242,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kadapa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0193",
+      "district": "YSR Kadapa",
+      "station_name": "Vallur CHC/PHC Base",
+      "lat": 14.58657,
+      "lng": 78.91743,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vallur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0194",
+      "district": "YSR Kadapa",
+      "station_name": "Kamalapuram CHC/PHC Base",
+      "lat": 14.52039,
+      "lng": 78.90697,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kamalapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0195",
+      "district": "YSR Kadapa",
+      "station_name": "Proddatur CHC/PHC Base",
+      "lat": 14.47036,
+      "lng": 79.0932,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Proddatur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0196",
+      "district": "YSR Kadapa",
+      "station_name": "Kondapuram CHC/PHC Base",
+      "lat": 14.43288,
+      "lng": 78.87344,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kondapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0197",
+      "district": "YSR Kadapa",
+      "station_name": "Rajupalem Kadapa CHC/PHC Base",
+      "lat": 14.42042,
+      "lng": 78.85301,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rajupalem Kadapa",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0198",
+      "district": "YSR Kadapa",
+      "station_name": "Mydukur CHC/PHC Base",
+      "lat": 14.34346,
+      "lng": 78.82283,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Mydukur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0199",
+      "district": "YSR Kadapa",
+      "station_name": "Badvel CHC/PHC Base",
+      "lat": 14.33705,
+      "lng": 78.75933,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Badvel",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0200",
+      "district": "YSR Kadapa",
+      "station_name": "Porumamilla CHC/PHC Base",
+      "lat": 14.32994,
+      "lng": 78.55002,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Porumamilla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0201",
+      "district": "YSR Kadapa",
+      "station_name": "Vontimitta CHC/PHC Base",
+      "lat": 14.46729,
+      "lng": 78.64972,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vontimitta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0202",
+      "district": "YSR Kadapa",
+      "station_name": "Vempalli CHC/PHC Base",
+      "lat": 14.49213,
+      "lng": 78.77902,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vempalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0203",
+      "district": "YSR Kadapa",
+      "station_name": "Thondur CHC/PHC Base",
+      "lat": 14.69948,
+      "lng": 78.64924,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Thondur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0204",
+      "district": "Annamayya",
+      "station_name": "Rayachoti CHC/PHC Base",
+      "lat": 14.056,
+      "lng": 78.7523,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Rayachoti",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0205",
+      "district": "Annamayya",
+      "station_name": "Galiveedu CHC/PHC Base",
+      "lat": 14.10664,
+      "lng": 78.78416,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Galiveedu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0206",
+      "district": "Annamayya",
+      "station_name": "T.Sundupalli CHC/PHC Base",
+      "lat": 14.10038,
+      "lng": 78.90112,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "T.Sundupalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0207",
+      "district": "Annamayya",
+      "station_name": "Nandalur CHC/PHC Base",
+      "lat": 14.00294,
+      "lng": 79.00839,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nandalur",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0208",
+      "district": "Annamayya",
+      "station_name": "Obulavaripalli CHC/PHC Base",
+      "lat": 14.00997,
+      "lng": 78.7963,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Obulavaripalli",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0209",
+      "district": "Annamayya",
+      "station_name": "Nimmanapalle CHC/PHC Base",
+      "lat": 14.01642,
+      "lng": 78.74783,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nimmanapalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0210",
+      "district": "Annamayya",
+      "station_name": "Kurabalakota CHC/PHC Base",
+      "lat": 13.94468,
+      "lng": 78.6866,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kurabalakota",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0211",
+      "district": "Annamayya",
+      "station_name": "Peddamandyam CHC/PHC Base",
+      "lat": 14.0099,
+      "lng": 78.56452,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peddamandyam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0212",
+      "district": "Annamayya",
+      "station_name": "Kambhamvaripalle CHC/PHC Base",
+      "lat": 14.10502,
+      "lng": 78.58672,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kambhamvaripalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0213",
+      "district": "Annamayya",
+      "station_name": "Kalikiri CHC/PHC Base",
+      "lat": 14.24783,
+      "lng": 78.5888,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kalikiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0214",
+      "district": "Tirupati",
+      "station_name": "Tirupati Urban CHC/PHC Base",
+      "lat": 13.6288,
+      "lng": 79.4192,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Tirupati Urban",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0215",
+      "district": "Tirupati",
+      "station_name": "Yerpedu CHC/PHC Base",
+      "lat": 13.69345,
+      "lng": 79.46533,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yerpedu",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0216",
+      "district": "Tirupati",
+      "station_name": "Vadamalapeta CHC/PHC Base",
+      "lat": 13.68526,
+      "lng": 79.57782,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vadamalapeta",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0217",
+      "district": "Tirupati",
+      "station_name": "Nagalapuram CHC/PHC Base",
+      "lat": 13.59708,
+      "lng": 79.6579,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Nagalapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0218",
+      "district": "Tirupati",
+      "station_name": "Varadaiahpalem CHC/PHC Base",
+      "lat": 13.47171,
+      "lng": 79.64845,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Varadaiahpalem",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0219",
+      "district": "Tirupati",
+      "station_name": "Doravarisatram CHC/PHC Base",
+      "lat": 13.37854,
+      "lng": 79.49053,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Doravarisatram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0220",
+      "district": "Tirupati",
+      "station_name": "Venkatagiri CHC/PHC Base",
+      "lat": 13.34681,
+      "lng": 79.38278,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Venkatagiri",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0221",
+      "district": "Tirupati",
+      "station_name": "Ozili CHC/PHC Base",
+      "lat": 13.5287,
+      "lng": 79.32232,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ozili",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0222",
+      "district": "Tirupati",
+      "station_name": "Vakadu Tirupati CHC/PHC Base",
+      "lat": 13.61781,
+      "lng": 79.38242,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vakadu Tirupati",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0223",
+      "district": "Tirupati",
+      "station_name": "Kavali Tirupati CHC/PHC Base",
+      "lat": 13.68878,
+      "lng": 79.23807,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kavali Tirupati",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0224",
+      "district": "Tirupati",
+      "station_name": "Buchinaidu Khandriga CHC/PHC Base",
+      "lat": 13.81191,
+      "lng": 79.25654,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Buchinaidu Khandriga",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0225",
+      "district": "Tirupati",
+      "station_name": "Yerravaripalem CHC/PHC Base",
+      "lat": 13.82587,
+      "lng": 79.38045,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Yerravaripalem",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0226",
+      "district": "Chittoor",
+      "station_name": "Chittoor CHC/PHC Base",
+      "lat": 13.2172,
+      "lng": 79.1003,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chittoor",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0227",
+      "district": "Chittoor",
+      "station_name": "Gangadhara Nellore CHC/PHC Base",
+      "lat": 13.392,
+      "lng": 79.21621,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Gangadhara Nellore",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0228",
+      "district": "Chittoor",
+      "station_name": "Karvetinagar CHC/PHC Base",
+      "lat": 13.2659,
+      "lng": 79.21321,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Karvetinagar",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0229",
+      "district": "Chittoor",
+      "station_name": "Vijayapuram CHC/PHC Base",
+      "lat": 13.1222,
+      "lng": 79.37981,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Vijayapuram",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0230",
+      "district": "Chittoor",
+      "station_name": "Peddapanjani CHC/PHC Base",
+      "lat": 12.9716,
+      "lng": 79.34497,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Peddapanjani",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0231",
+      "district": "Chittoor",
+      "station_name": "Kuppam CHC/PHC Base",
+      "lat": 12.91772,
+      "lng": 79.11403,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kuppam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0232",
+      "district": "Chittoor",
+      "station_name": "Ramakuppam CHC/PHC Base",
+      "lat": 13.14187,
+      "lng": 79.05436,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Ramakuppam",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0233",
+      "district": "Chittoor",
+      "station_name": "Irala CHC/PHC Base",
+      "lat": 13.13089,
+      "lng": 78.83025,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Irala",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0234",
+      "district": "Chittoor",
+      "station_name": "Chowdepalle CHC/PHC Base",
+      "lat": 13.27275,
+      "lng": 78.85712,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Chowdepalle",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0235",
+      "district": "Chittoor",
+      "station_name": "Pulicherla CHC/PHC Base",
+      "lat": 13.39457,
+      "lng": 78.89708,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Pulicherla",
+      "is_baseline": true
+    },
+    {
+      "ambulance_id": "AP-108-BASE-0236",
+      "district": "Chittoor",
+      "station_name": "Kuppam Rural CHC/PHC Base",
+      "lat": 13.46354,
+      "lng": 79.05888,
+      "type": "Basic Life Support (BLS)",
+      "allocated_mandal": "Kuppam Rural",
+      "is_baseline": true
+    }
+  ]
+}

@@ -1,0 +1,514 @@
+/**
+ * AP 108 Emergency Command Center - Dashboard Logic
+ * Interactive Leaflet mapping, optimization recomputation, and live accident dispatch simulation.
+ */
+
+// Global State
+let map;
+let layers = {
+  optAmbulances: L.layerGroup(),
+  coverageCircles: L.layerGroup(),
+  blackspots: L.layerGroup(),
+  baseline: L.layerGroup(),
+  mandals: L.layerGroup(),
+  traumaCenters: L.layerGroup(),
+  incidents: L.layerGroup()
+};
+
+let currentBlackspots = [];
+let currentOptimalStations = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  setupEventListeners();
+  loadInitialData();
+});
+
+function initMap() {
+  // Center of Andhra Pradesh
+  map = L.map("map", {
+    center: [15.9129, 79.9400],
+    zoom: 7,
+    zoomControl: false
+  });
+
+  L.control.zoom({ position: "bottomright" }).addTo(map);
+
+  // Dark Matter tiles for emergency command center feel
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a>, &copy; OpenStreetMap contributors',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Add layer groups to map
+  Object.values(layers).forEach(layer => layer.addTo(map));
+
+  // Map Click Listener: User can click anywhere in AP to report an accident
+  map.on("click", (e) => {
+    handleAccidentReport(e.latlng.lat, e.latlng.lng);
+  });
+}
+
+function setupEventListeners() {
+  // Slider displays
+  const ambSlider = document.getElementById("ambulance-slider");
+  const ambVal = document.getElementById("ambulance-count-val");
+  ambSlider.addEventListener("input", (e) => {
+    ambVal.textContent = e.target.value;
+  });
+
+  const radSlider = document.getElementById("radius-slider");
+  const radVal = document.getElementById("radius-count-val");
+  radSlider.addEventListener("input", (e) => {
+    radVal.textContent = `${e.target.value} km`;
+  });
+
+  // Layer toggles
+  document.getElementById("layer-opt-ambulances").addEventListener("change", (e) => {
+    toggleLayer(layers.optAmbulances, e.target.checked);
+  });
+  document.getElementById("layer-coverage-circles").addEventListener("change", (e) => {
+    toggleLayer(layers.coverageCircles, e.target.checked);
+  });
+  document.getElementById("layer-blackspots").addEventListener("change", (e) => {
+    toggleLayer(layers.blackspots, e.target.checked);
+  });
+  document.getElementById("layer-baseline").addEventListener("change", (e) => {
+    toggleLayer(layers.baseline, e.target.checked);
+  });
+  document.getElementById("layer-mandals").addEventListener("change", (e) => {
+    toggleLayer(layers.mandals, e.target.checked);
+  });
+  document.getElementById("layer-trauma-centers").addEventListener("change", (e) => {
+    toggleLayer(layers.traumaCenters, e.target.checked);
+  });
+
+  // Recompute Optimization Button
+  document.getElementById("btn-run-optimization").addEventListener("click", runOptimization);
+
+  // District select change
+  document.getElementById("district-select").addEventListener("change", (e) => {
+    const district = e.target.value;
+    if (district === "ALL") {
+      document.getElementById("ambulance-slider").value = 45;
+      document.getElementById("ambulance-count-val").textContent = "45";
+    } else {
+      document.getElementById("ambulance-slider").value = 14;
+      document.getElementById("ambulance-count-val").textContent = "14";
+    }
+    runOptimization();
+  });
+
+  // Highway Crash Simulation Button
+  document.getElementById("btn-simulate-highway-crash").addEventListener("click", () => {
+    if (currentBlackspots.length > 0) {
+      const randomSpot = currentBlackspots[Math.floor(Math.random() * currentBlackspots.length)];
+      handleAccidentReport(randomSpot.lat, randomSpot.lng, randomSpot.location_name);
+    } else {
+      handleAccidentReport(16.3067, 80.4365, "Guntur Highway Stretch");
+    }
+  });
+}
+
+function toggleLayer(layer, isVisible) {
+  if (isVisible) {
+    map.addLayer(layer);
+  } else {
+    map.removeLayer(layer);
+  }
+}
+
+async function loadInitialData() {
+  try {
+    // 1. Load Trauma Centers
+    const traumaRes = await fetch("/api/trauma_centers");
+    const traumaData = await traumaRes.json();
+    renderTraumaCenters(traumaData.trauma_centers || []);
+
+    // 2. Load Baseline Ambulances
+    const baseRes = await fetch("/api/baseline?district=ALL");
+    const baseData = await baseRes.json();
+    renderBaselineAmbulances(baseData.ambulances || []);
+
+    // 3. Load Mandals
+    const mandalRes = await fetch("/api/mandals?district=ALL");
+    const mandalData = await mandalRes.json();
+    renderMandals(mandalData.mandals || []);
+
+    // 4. Run initial optimization
+    await runOptimization();
+  } catch (err) {
+    console.error("Error loading initial data:", err);
+  }
+}
+
+async function runOptimization() {
+  const district = document.getElementById("district-select").value;
+  const algorithm = document.getElementById("algorithm-select").value;
+  const numAmbulances = parseInt(document.getElementById("ambulance-slider").value);
+  const radiusKm = parseFloat(document.getElementById("radius-slider").value);
+
+  const btn = document.getElementById("btn-run-optimization");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Optimizing Positioning...';
+
+  try {
+    const res = await fetch("/api/optimize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        district: district,
+        algorithm: algorithm,
+        num_ambulances: numAmbulances,
+        radius_km: radiusKm
+      })
+    });
+
+    const data = await res.json();
+    if (data.status === "success") {
+      currentOptimalStations = data.optimization.selected_stations || [];
+      renderOptimalAmbulances(currentOptimalStations, radiusKm);
+      updateKPIs(data);
+
+      // Load blackspots for this district or state
+      const bsRes = await fetch(`/api/blackspots?district=${encodeURIComponent(district)}`);
+      const bsData = await bsRes.json();
+      currentBlackspots = bsData.blackspots || [];
+      renderBlackspots(currentBlackspots);
+
+      // Adjust map bounds
+      if (district !== "ALL" && currentOptimalStations.length > 0) {
+        const bounds = L.latLngBounds(currentOptimalStations.map(s => [s.lat, s.lng]));
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
+  } catch (err) {
+    console.error("Optimization failed:", err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Recompute Optimal Positioning';
+  }
+}
+
+function updateKPIs(data) {
+  const evalData = data.evaluation || {};
+  const optMetrics = evalData.optimized || {};
+  const deltas = evalData.deltas || {};
+
+  // Coverage KPI
+  const covVal = optMetrics.golden_hour_mandal_coverage_pct || 0;
+  document.getElementById("kpi-coverage").textContent = `${covVal}%`;
+  const covDeltaEl = document.getElementById("kpi-coverage-delta");
+  covDeltaEl.innerHTML = `<i class="fa-solid fa-arrow-trend-up"></i> <span>+${deltas.coverage_gain_pct || 0}% vs Baseline</span>`;
+
+  // Response Time KPI
+  const timeVal = optMetrics.average_response_time_minutes || 0;
+  document.getElementById("kpi-response-time").textContent = `${timeVal} min`;
+  const timeDeltaEl = document.getElementById("kpi-time-delta");
+  timeDeltaEl.innerHTML = `<i class="fa-solid fa-arrow-trend-down"></i> <span>-${deltas.response_time_reduction_minutes || 0} min faster</span>`;
+
+  // Blackspot Protection KPI
+  const bsVal = optMetrics.blackspot_coverage_pct || 0;
+  document.getElementById("kpi-blackspot-coverage").textContent = `${bsVal}%`;
+  document.getElementById("kpi-blackspot-delta").textContent = `${optMetrics.covered_blackspots_count || 0}/${optMetrics.total_blackspots || 0} Corridor Hotspots`;
+
+  // Blindspots
+  const blindspotsVal = optMetrics.severely_delayed_mandals_count || 0;
+  document.getElementById("kpi-blindspots").textContent = blindspotsVal;
+  document.getElementById("kpi-blindspots-delta").textContent = `${deltas.blindspots_eliminated || 0} Blindspots Resolved`;
+}
+
+function renderOptimalAmbulances(stations, radiusKm) {
+  layers.optAmbulances.clearLayers();
+  layers.coverageCircles.clearLayers();
+
+  const radiusMeters = radiusKm * 1000;
+
+  stations.forEach((stn, idx) => {
+    const isALS = stn.allocated_vehicle_type && stn.allocated_vehicle_type.includes("ALS");
+    const markerColor = isALS ? "#10b981" : "#06b6d4";
+
+    const customIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div style="background:${markerColor}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; border:2px solid #fff; box-shadow:0 0 12px ${markerColor};">
+          <i class="fa-solid fa-truck-medical" style="font-size:13px;"></i>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+
+    const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:180px;">
+        <strong style="color:${markerColor}; font-size:13px;">${stn.name}</strong><br>
+        <strong>District:</strong> ${stn.district}<br>
+        <strong>Mandal:</strong> ${stn.mandal}<br>
+        <strong>Vehicle Class:</strong> <span style="font-weight:700; color:${markerColor};">${stn.allocated_vehicle_type || 'BLS'}</span><br>
+        <strong>Paramedic Crew:</strong> ${stn.paramedic_crew || 2} Officers<br>
+        <strong>Coverage Radius:</strong> ${radiusKm} km (~15 min response)<br>
+        <strong>Covered Nodes:</strong> ${stn.covered_demand_count || 0}
+      </div>
+    `);
+    layers.optAmbulances.addLayer(marker);
+
+    // Coverage Circle Buffer
+    const circle = L.circle([stn.lat, stn.lng], {
+      radius: radiusMeters,
+      color: markerColor,
+      weight: 1.5,
+      opacity: 0.8,
+      fillColor: markerColor,
+      fillOpacity: 0.12
+    });
+    layers.coverageCircles.addLayer(circle);
+  });
+}
+
+function renderBlackspots(blackspots) {
+  layers.blackspots.clearLayers();
+
+  blackspots.forEach((bs) => {
+    const customIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div class="marker-blackspot" style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      `,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
+
+    const marker = L.marker([bs.lat, bs.lng], { icon: customIcon });
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:200px;">
+        <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-triangle-exclamation"></i> Blackspot: ${bs.location_name}</strong><br>
+        <strong>Corridor:</strong> ${bs.corridor}<br>
+        <strong>District:</strong> ${bs.district}<br>
+        <strong>Annual Fatalities:</strong> ${bs.fatalities_annual}<br>
+        <strong>Annual Injuries:</strong> ${bs.injuries_annual}<br>
+        <strong>Severity Index:</strong> ${bs.severity_index}<br>
+        <strong>Primary Cause:</strong> ${bs.accident_causes}<br>
+        <strong>High Risk Window:</strong> ${bs.peak_time_window}<br>
+        <button onclick="handleAccidentReport(${bs.lat}, ${bs.lng}, '${bs.location_name.replace(/'/g, "\\'")}')" style="margin-top:6px; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">
+          <i class="fa-solid fa-truck-medical"></i> Test Dispatch Here
+        </button>
+      </div>
+    `);
+    layers.blackspots.addLayer(marker);
+  });
+}
+
+function renderTraumaCenters(traumaCenters) {
+  layers.traumaCenters.clearLayers();
+
+  traumaCenters.forEach(tc => {
+    const icon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div class="marker-trauma" style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">
+          <i class="fa-solid fa-hospital"></i>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+
+    const marker = L.marker([tc.lat, tc.lng], { icon: icon });
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a;">
+        <strong style="color:#8b5cf6; font-size:13px;"><i class="fa-solid fa-hospital"></i> ${tc.name}</strong><br>
+        <strong>Level:</strong> ${tc.level}<br>
+        <strong>District:</strong> ${tc.district}
+      </div>
+    `);
+    layers.traumaCenters.addLayer(marker);
+  });
+}
+
+function renderBaselineAmbulances(ambulances) {
+  layers.baseline.clearLayers();
+
+  ambulances.forEach(amb => {
+    const icon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div class="marker-baseline" style="width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:9px;">
+          <i class="fa-solid fa-truck-medical"></i>
+        </div>
+      `,
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+
+    const marker = L.marker([amb.lat, amb.lng], { icon: icon });
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a;">
+        <strong>Baseline 108 Base: ${amb.station_name}</strong><br>
+        <strong>District:</strong> ${amb.district}<br>
+        <strong>Status:</strong> Pre-Optimization Static Base
+      </div>
+    `);
+    layers.baseline.addLayer(marker);
+  });
+}
+
+function renderMandals(mandals) {
+  layers.mandals.clearLayers();
+
+  mandals.forEach(m => {
+    const circle = L.circleMarker([m.lat, m.lng], {
+      radius: 3.5,
+      color: "#3b82f6",
+      fillColor: "#3b82f6",
+      fillOpacity: 0.6,
+      weight: 1
+    });
+
+    circle.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a;">
+        <strong>${m.mandal_name} Mandal</strong><br>
+        <strong>District:</strong> ${m.district}<br>
+        <strong>Population:</strong> ${m.population.toLocaleString()}<br>
+        <strong>Risk Score:</strong> ${m.risk_score} / 10.0<br>
+        <strong>Annual Accidents:</strong> ${m.annual_accidents}
+      </div>
+    `);
+    layers.mandals.addLayer(circle);
+  });
+}
+
+async function handleAccidentReport(lat, lng, locationLabel = "") {
+  layers.incidents.clearLayers();
+
+  // Pulse accident marker
+  const crashIcon = L.divIcon({
+    className: "custom-div-icon",
+    html: `
+      <div style="background:#ef4444; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; border:3px solid #fff; box-shadow:0 0 20px #ef4444; animation:blackspotPulse 1.2s infinite ease-out;">
+        <i class="fa-solid fa-car-burst" style="font-size:16px;"></i>
+      </div>
+    `,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17]
+  });
+
+  const incidentMarker = L.marker([lat, lng], { icon: crashIcon }).addTo(layers.incidents);
+
+  // Dispatch API Call
+  try {
+    const res = await fetch("/api/dispatch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: lat, lng: lng, severity: "Critical" })
+    });
+
+    const data = await res.json();
+    if (data.status === "success" && data.dispatch) {
+      const d = data.dispatch;
+      const amb = d.dispatched_ambulance;
+      const metrics = d.response_metrics;
+      const nearestHosp = d.nearest_hospital || d.recommended_trauma_center;
+      const apexCenter = d.apex_referral_center || {};
+
+      // 1. Draw Ambulance -> Crash Site Routing Polyline (Emerald Green)
+      const ambWaypoints = d.route_waypoints || [[amb.lat, amb.lng], [lat, lng]];
+      const ambRouteLine = L.polyline(ambWaypoints, {
+        color: metrics.status_color || "#10b981",
+        weight: 5,
+        opacity: 0.9,
+        dashArray: "8, 6"
+      }).addTo(layers.incidents);
+
+      // Add animated ambulance icon at station
+      const ambIcon = L.divIcon({
+        className: "custom-div-icon",
+        html: `
+          <div style="background:#10b981; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; border:2px solid #fff; box-shadow:0 0 15px #10b981;">
+            <i class="fa-solid fa-truck-fast" style="font-size:14px;"></i>
+          </div>
+        `,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      L.marker([amb.lat, amb.lng], { icon: ambIcon }).addTo(layers.incidents);
+
+      // 2. Draw Crash Site -> Nearest Local Referral Hospital Transfer Route (Purple)
+      const hospWaypoints = d.hospital_transfer_waypoints || [[lat, lng], [nearestHosp.lat, nearestHosp.lng]];
+      const hospRouteLine = L.polyline(hospWaypoints, {
+        color: "#a855f7",
+        weight: 4,
+        opacity: 0.85,
+        dashArray: "6, 8"
+      }).addTo(layers.incidents);
+
+      // Highlight the Nearest Referral Hospital with an animated pulse marker
+      const hospIcon = L.divIcon({
+        className: "custom-div-icon",
+        html: `
+          <div style="background:#8b5cf6; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; border:2px solid #fff; box-shadow:0 0 16px #8b5cf6;">
+            <i class="fa-solid fa-hospital" style="font-size:14px;"></i>
+          </div>
+        `,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      const hospMarker = L.marker([nearestHosp.lat, nearestHosp.lng], { icon: hospIcon }).addTo(layers.incidents);
+      hospMarker.bindPopup(`
+        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:190px;">
+          <strong style="color:#8b5cf6; font-size:13px;"><i class="fa-solid fa-hospital"></i> ${nearestHosp.name}</strong><br>
+          <strong>Type:</strong> ${nearestHosp.level}<br>
+          <strong>Town/District:</strong> ${nearestHosp.town || nearestHosp.district}<br>
+          <strong>Distance from Crash:</strong> ${nearestHosp.distance_km} km<br>
+          <strong>Transit ETA:</strong> ${nearestHosp.eta_minutes || '--'} mins
+        </div>
+      `);
+
+      // 3. Show Dispatch Telemetry Panel
+      const box = document.getElementById("dispatch-result-box");
+      box.classList.remove("hidden");
+      box.style.borderColor = metrics.status_color;
+
+      const indicator = document.getElementById("dispatch-status-indicator");
+      indicator.style.backgroundColor = metrics.status_color;
+      indicator.style.boxShadow = `0 0 10px ${metrics.status_color}`;
+
+      document.getElementById("dispatch-status-label").textContent = `${metrics.status_label} (Ambulance ETA: ${metrics.estimated_eta_minutes} min)`;
+      document.getElementById("disp-unit-name").textContent = `${amb.name} (${amb.mandal})`;
+      document.getElementById("disp-unit-type").textContent = amb.vehicle_type;
+      document.getElementById("disp-distance").textContent = `${metrics.road_distance_km} km`;
+      document.getElementById("disp-eta").textContent = `${metrics.estimated_eta_minutes} min`;
+
+      // Nearest local hospital
+      document.getElementById("disp-local-hospital").textContent = `${nearestHosp.name} (${nearestHosp.level})`;
+      document.getElementById("disp-hospital-eta").textContent = `${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes || '--'} min)`;
+      document.getElementById("disp-apex-hospital").textContent = apexCenter.name ? `${apexCenter.name} (${apexCenter.distance_km} km)` : '--';
+
+      // Incident popup on crash marker
+      incidentMarker.bindPopup(`
+        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:210px;">
+          <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-car-burst"></i> Emergency Crash Site</strong><br>
+          ${locationLabel ? `<strong>Location:</strong> ${locationLabel}<br>` : ''}
+          <strong>Dispatched:</strong> ${amb.name} (${metrics.road_distance_km} km)<br>
+          <strong>Ambulance Arrival:</strong> <span style="font-weight:700; color:${metrics.status_color};">${metrics.estimated_eta_minutes} min</span><br>
+          <hr style="margin:4px 0; border:0; border-top:1px solid #e2e8f0;">
+          <strong style="color:#8b5cf6;"><i class="fa-solid fa-hospital"></i> Nearest Hospital:</strong> ${nearestHosp.name}<br>
+          <strong>Hospital Transfer:</strong> ${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes} min)<br>
+          <strong>Golden Hour Status:</strong> ${metrics.golden_hour_status}
+        </div>
+      `).openPopup();
+
+      // Fit map bounds to encompass Ambulance, Crash Site, and Nearest Hospital
+      const combinedBounds = L.latLngBounds([
+        [amb.lat, amb.lng],
+        [lat, lng],
+        [nearestHosp.lat, nearestHosp.lng]
+      ]);
+      map.fitBounds(combinedBounds, { padding: [60, 60] });
+    }
+  } catch (err) {
+    console.error("Dispatch simulation error:", err);
+  }
+}

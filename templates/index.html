@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AP Emergency Command | Optimal Ambulance Positioning System</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="logo-area">
+      <div class="emergency-badge">
+        <i class="fa-solid fa-truck-medical pulse-icon"></i>
+      </div>
+      <div>
+        <h1>Ambulance Positioning System<span class="badge-ai">AI OPTIMIZER</span></h1>
+        <p class="subtitle">Optimal Ambulance Positioning & Road Accident Golden Hour Recommendation System</p>
+      </div>
+    </div>
+    
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="label">Districts</span>
+        <span class="val" id="stat-districts">{{ total_districts }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Mandals</span>
+        <span class="val" id="stat-mandals">{{ total_mandals }}</span>
+      </div>
+      <div class="stat-pill">
+        <span class="label">Blackspots</span>
+        <span class="val" id="stat-blackspots">{{ total_blackspots }}</span>
+      </div>
+      <div class="stat-pill highlight">
+        <span class="label">Baseline Fleet</span>
+        <span class="val" id="stat-baseline">{{ baseline_ambulances_count }}</span>
+      </div>
+      <a href="/api/export_report" class="btn-export" title="Export Station Deployment CSV">
+        <i class="fa-solid fa-file-arrow-down"></i> Export Report
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+    <!-- Left Sidebar: Controls & Metrics -->
+    <aside class="sidebar">
+      <!-- Control Panel -->
+      <section class="panel control-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-sliders"></i> Optimization Parameters</h3>
+        </div>
+        
+        <div class="form-group">
+          <label for="district-select"><i class="fa-solid fa-map-location-dot"></i> Select District</label>
+          <select id="district-select" class="form-control">
+            <option value="ALL">All 26 Districts (Statewide)</option>
+            {% for d in districts %}
+            <option value="{{ d }}">{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="algorithm-select"><i class="fa-solid fa-brain"></i> Optimization Objective</label>
+          <select id="algorithm-select" class="form-control">
+            <option value="hybrid">Hybrid (MCLP Coverage + p-Median Latency)</option>
+            <option value="mclp">MCLP (Maximal Blackspot Coverage)</option>
+            <option value="p_median">p-Median (Min Weighted Response Time)</option>
+          </select>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="ambulance-slider"><i class="fa-solid fa-truck-medical"></i> Fleet Size (P):</label>
+            <span class="slider-val" id="ambulance-count-val">16</span>
+          </div>
+          <input type="range" id="ambulance-slider" min="3" max="80" value="16" class="range-slider">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label for="radius-slider"><i class="fa-solid fa-circle-dot"></i> Golden Hour Radius (R):</label>
+            <span class="slider-val" id="radius-count-val">12 km</span>
+          </div>
+          <input type="range" id="radius-slider" min="6" max="25" value="12" class="range-slider">
+          <span class="slider-hint">~ 15 min response time at 50 km/h</span>
+        </div>
+
+        <button id="btn-run-optimization" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-bolt"></i> Recompute Optimal Positioning
+        </button>
+      </section>
+
+      <!-- Comparative Performance Metrics -->
+      <section class="panel metrics-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-chart-line"></i> Performance Comparison</h3>
+          <span class="badge-live">LIVE METRICS</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-title">Golden Hour Coverage</div>
+            <div class="kpi-value" id="kpi-coverage">--%</div>
+            <div class="kpi-delta positive" id="kpi-coverage-delta">
+              <i class="fa-solid fa-arrow-trend-up"></i> <span>+0% gain</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Avg Response Time</div>
+            <div class="kpi-value" id="kpi-response-time">-- min</div>
+            <div class="kpi-delta positive" id="kpi-time-delta">
+              <i class="fa-solid fa-arrow-trend-down"></i> <span>-0 min</span>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Blackspot Protection</div>
+            <div class="kpi-value" id="kpi-blackspot-coverage">--%</div>
+            <div class="kpi-delta" id="kpi-blackspot-delta">Corridor Shield</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Severely Delayed Zones</div>
+            <div class="kpi-value" id="kpi-blindspots">--</div>
+            <div class="kpi-delta positive" id="kpi-blindspots-delta">Blindspots Eliminated</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Incident Simulation Panel -->
+      <section class="panel incident-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-triangle-exclamation"></i> Emergency Dispatch Simulator</h3>
+        </div>
+        <p class="panel-desc">Click any location on the map to trigger a live road accident call and observe automated nearest ambulance dispatch.</p>
+        
+        <div class="dispatch-actions">
+          <button id="btn-simulate-highway-crash" class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-car-burst"></i> Simulate Highway Blackspot Crash
+          </button>
+        </div>
+
+        <div id="dispatch-result-box" class="dispatch-result-box hidden">
+          <div class="dispatch-status-header">
+            <span class="status-indicator" id="dispatch-status-indicator"></span>
+            <strong id="dispatch-status-label">ETA: Calculating...</strong>
+          </div>
+          <div class="dispatch-meta">
+            <div><strong>Dispatched Unit:</strong> <span id="disp-unit-name">--</span></div>
+            <div><strong>Vehicle Class:</strong> <span id="disp-unit-type" class="badge-vehicle">BLS</span></div>
+            <div><strong>Ambulance ETA:</strong> <span id="disp-eta" style="color:var(--primary); font-weight:700;">-- min</span> (<span id="disp-distance">-- km</span>)</div>
+            <div style="border-top: 1px dashed var(--border-color); margin-top: 4px; padding-top: 4px;">
+              <strong>🏥 Nearest Hospital:</strong> <span id="disp-local-hospital" style="color:#38bdf8; font-weight:600;">--</span>
+            </div>
+            <div><strong>Hospital Transfer:</strong> <span id="disp-hospital-eta" style="color:#c084fc;">--</span></div>
+            <div><strong>Apex Trauma Center:</strong> <span id="disp-apex-hospital" style="color:var(--text-muted);">--</span></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Center: Interactive Leaflet Map Area -->
+    <section class="map-section">
+      <div id="map"></div>
+
+      <!-- Map Floating Controls & Legend -->
+      <div class="map-floating-overlay">
+        <div class="map-legend">
+          <div class="legend-title"><i class="fa-solid fa-layer-group"></i> Map Layers & Legend</div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-opt-ambulances" checked>
+            <label for="layer-opt-ambulances">
+              <span class="legend-color-dot" style="background:#10b981;"></span> Optimal Ambulances (ALS/BLS)
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-coverage-circles" checked>
+            <label for="layer-coverage-circles">
+              <span class="legend-color-dot" style="background:rgba(16, 185, 129, 0.25); border:1px solid #10b981;"></span> Golden Hour Zone (12 km)
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-blackspots" checked>
+            <label for="layer-blackspots">
+              <span class="legend-color-dot" style="background:#ef4444;"></span> Highway Blackspots (NH/SH)
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-baseline">
+            <label for="layer-baseline">
+              <span class="legend-color-dot" style="background:#64748b;"></span> Baseline 108 Stations
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-mandals">
+            <label for="layer-mandals">
+              <span class="legend-color-dot" style="background:#3b82f6;"></span> Mandal Headquarters (679)
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-trauma-centers" checked>
+            <label for="layer-trauma-centers">
+              <span class="legend-color-dot" style="background:#8b5cf6;"></span> Apex Trauma Centers (GGH)
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
