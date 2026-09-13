@@ -283,21 +283,6 @@ def export_report():
         download_name="AP_Optimal_Ambulance_Recommendations.csv"
     )
 
-@app.route("/api/download_pdf", methods=["GET"])
-def download_pdf():
-    """Serves the academic B.Tech project report documentation PDF."""
-    pdf_path = os.path.join(BASE_DIR, "PROJECT_DOCUMENTATION_REPORT.pdf")
-    if not os.path.exists(pdf_path):
-        import subprocess
-        gen_script = os.path.join(BASE_DIR, "generate_pdf_report.py")
-        subprocess.run([sys.executable, gen_script, pdf_path], check=True)
-    return send_file(
-        pdf_path,
-        as_attachment=True,
-        download_name="AP_Ambulance_Optimization_BTech_Project_Report.pdf",
-        mimetype="application/pdf"
-    )
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     print(f"Starting AP Ambulance Optimizer Web Command Center on http://127.0.0.1:{port}")
