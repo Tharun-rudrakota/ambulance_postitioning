@@ -221,5 +221,60 @@ class TestAPAmbulanceOptimizer(unittest.TestCase):
         self.assertLess(data["dispatch"]["response_metrics"]["estimated_eta_minutes"], 5.0)
         self.assertEqual(data["dispatch"]["response_metrics"]["golden_hour_status"], "GOLDEN_HOUR_MET")
 
+    def test_09_duttalur_nellore_ready_ambulance_and_danger_zones(self):
+        """Test SPS Nellore and Duttalur mandal coverage, village danger spots, and automated ready ambulance dispatch."""
+        client = app.test_client()
+
+        # 1. Verify Duttalur mandal in SPS Nellore
+        res = client.get("/api/mandals?district=SPS+Nellore")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["count"], 38)
+        duttalur_mandal = [m for m in data["mandals"] if m["mandal_name"].lower() == "duttalur"]
+        self.assertEqual(len(duttalur_mandal), 1)
+        self.assertEqual(duttalur_mandal[0]["district"], "SPS Nellore")
+
+        # 2. Verify Duttalur village danger spots in SPS Nellore
+        res = client.get("/api/village_danger_spots?district=SPS+Nellore")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        duttalur_ds = [ds for ds in data["danger_spots"] if ds["mandal"].lower() == "duttalur"]
+        self.assertEqual(len(duttalur_ds), 15)
+        first_ds = duttalur_ds[0]
+        self.assertIn("Unlit T-Junction Blackspot", first_ds["hazard_type"])
+        self.assertGreater(first_ds["annual_accidents"], 0)
+
+        # 3. Test optimization of SPS Nellore deploys ready stations across all 38 mandals
+        res = client.post("/api/optimize", json={
+            "district": "SPS Nellore",
+            "num_ambulances": 14,
+            "radius_km": 12.0,
+            "algorithm": "hybrid"
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        all_nellore_stations = data["optimization"]["selected_stations"] + data["optimization"]["ready_mandal_stations"]
+        self.assertEqual(len(all_nellore_stations), 38)
+        duttalur_station = [s for s in all_nellore_stations if s["mandal"].lower() == "duttalur"]
+        self.assertEqual(len(duttalur_station), 1)
+
+        # 4. Test automated emergency dispatch at Duttalur Gramam dispatches the local Duttalur ready unit
+        res = client.post("/api/dispatch", json={
+            "lat": 14.40591,
+            "lng": 80.08686,
+            "severity": "Critical"
+        })
+        self.assertEqual(res.status_code, 200)
+        disp_data = res.get_json()
+        self.assertEqual(disp_data["status"], "success")
+        dispatched_amb = disp_data["dispatch"]["dispatched_ambulance"]
+        self.assertEqual(dispatched_amb["mandal"], "Duttalur")
+        self.assertLess(disp_data["dispatch"]["response_metrics"]["road_distance_km"], 10.0)
+        self.assertLess(disp_data["dispatch"]["response_metrics"]["estimated_eta_minutes"], 12.0)
+        self.assertEqual(disp_data["dispatch"]["response_metrics"]["golden_hour_status"], "GOLDEN_HOUR_MET")
+
 if __name__ == "__main__":
     unittest.main()

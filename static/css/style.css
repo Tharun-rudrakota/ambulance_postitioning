@@ -725,4 +725,30 @@ body {
   50% { transform: scale(1.18); box-shadow: 0 0 22px #34d399; }
 }
 
+/* Ready 108 Mandal Station Badges */
+.amb-type-badge.ready-badge {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.bold-map-label.ready-ambulance-label {
+  border-color: #0284c7 !important;
+}
+
+.marker-village-danger.critical {
+  background: #dc2626;
+  box-shadow: 0 0 16px rgba(220, 38, 38, 0.95);
+  animation: dangerPulse 1.4s infinite ease-out;
+}
+
+.marker-village-danger.high {
+  background: #ea580c;
+  box-shadow: 0 0 12px rgba(234, 88, 12, 0.85);
+  animation: dangerPulse 2s infinite ease-out;
+}
+
+
 

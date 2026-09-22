@@ -109,12 +109,35 @@ def get_districts():
         "districts": DATA_CACHE["districts"]
     })
 
+def match_district(district1: str, district2: str) -> bool:
+    """Case-insensitive and alias-resilient district matching."""
+    if not district1 or not district2:
+        return False
+    aliases = {
+        "nellore": "sps nellore",
+        "sps nellore": "sps nellore",
+        "sri potti sriramulu nellore": "sps nellore",
+        "kadapa": "ysr kadapa",
+        "ysr kadapa": "ysr kadapa",
+        "ysr": "ysr kadapa",
+        "konaseema": "dr. b.r. ambedkar konaseema",
+        "dr. b.r. ambedkar konaseema": "dr. b.r. ambedkar konaseema",
+        "manyam": "parvathipuram manyam",
+        "parvathipuram manyam": "parvathipuram manyam",
+        "alluri": "alluri sitharama raju",
+        "asr": "alluri sitharama raju",
+        "alluri sitharama raju": "alluri sitharama raju"
+    }
+    k1 = aliases.get(district1.strip().lower(), district1.strip().lower())
+    k2 = aliases.get(district2.strip().lower(), district2.strip().lower())
+    return k1 == k2
+
 @app.route("/api/mandals", methods=["GET"])
 def get_mandals():
     """Returns mandals filtered by district or all 679 mandals."""
     district = request.args.get("district", "ALL")
     if district and district != "ALL":
-        filtered = [m for m in DATA_CACHE["mandals"] if m["district"].lower() == district.lower()]
+        filtered = [m for m in DATA_CACHE["mandals"] if match_district(m["district"], district)]
     else:
         filtered = DATA_CACHE["mandals"]
     return jsonify({
@@ -129,7 +152,7 @@ def get_blackspots():
     """Returns accident blackspots filtered by district or all."""
     district = request.args.get("district", "ALL")
     if district and district != "ALL":
-        filtered = [b for b in DATA_CACHE["blackspots"] if b["district"].lower() == district.lower()]
+        filtered = [b for b in DATA_CACHE["blackspots"] if match_district(b["district"], district)]
     else:
         filtered = DATA_CACHE["blackspots"]
     return jsonify({
@@ -144,7 +167,7 @@ def get_baseline_ambulances():
     """Returns baseline 108 ambulance deployment."""
     district = request.args.get("district", "ALL")
     if district and district != "ALL":
-        filtered = [a for a in DATA_CACHE["baseline_ambulances"] if a["district"].lower() == district.lower()]
+        filtered = [a for a in DATA_CACHE["baseline_ambulances"] if match_district(a["district"], district)]
     else:
         filtered = DATA_CACHE["baseline_ambulances"]
     return jsonify({
@@ -166,11 +189,11 @@ def get_villages():
     """Returns villages filtered by district and optional mandal."""
     district = request.args.get("district", "ALL")
     mandal = request.args.get("mandal", "ALL")
-    limit = int(request.args.get("limit", 600))
+    limit = int(request.args.get("limit", 2500))
 
     villages = DATA_CACHE.get("villages", [])
     if district and district != "ALL":
-        villages = [v for v in villages if v["district"].lower() == district.lower()]
+        villages = [v for v in villages if match_district(v["district"], district)]
     if mandal and mandal != "ALL":
         villages = [v for v in villages if v["mandal"].lower() == mandal.lower()]
 
@@ -233,8 +256,8 @@ def optimize_positioning():
 
     # Filter demand points (mandals + blackspots) and candidate sites
     if district and district != "ALL":
-        mandals = [m for m in DATA_CACHE["mandals"] if m["district"].lower() == district.lower()]
-        blackspots = [b for b in DATA_CACHE["blackspots"] if b["district"].lower() == district.lower()]
+        mandals = [m for m in DATA_CACHE["mandals"] if match_district(m["district"], district)]
+        blackspots = [b for b in DATA_CACHE["blackspots"] if match_district(b["district"], district)]
     else:
         mandals = DATA_CACHE["mandals"]
         blackspots = DATA_CACHE["blackspots"]
@@ -275,9 +298,32 @@ def optimize_positioning():
 
     # Run optimizer
     hybrid_opt = HybridAmbulanceOptimizer(demand_points, candidate_sites, radius_km)
-    opt_result = hybrid_opt.optimize(p_ambulances=min(num_ambulances, len(candidate_sites)), mode=algorithm)
+    p_alloc = min(num_ambulances, len(candidate_sites))
+    opt_result = hybrid_opt.optimize(p_ambulances=p_alloc, mode=algorithm)
 
-    # Update active fleet in cache and dispatch engine
+    # For the selected district, generate ready stations for ALL mandals so NO village is left uncovered!
+    selected_mandals = {stn["mandal"].lower() for stn in opt_result["selected_stations"]}
+    ready_stations = []
+    for m in mandals:
+        if m["mandal_name"].lower() not in selected_mandals:
+            ready_stations.append({
+                "station_id": f"READY-{m['mandal_id']}",
+                "name": f"{m['mandal_name']} 108 Ready Emergency Station",
+                "lat": m["lat"],
+                "lng": m["lng"],
+                "district": m["district"],
+                "mandal": m["mandal_name"],
+                "allocated_vehicle_type": "Basic Life Support (BLS) - Ready Post",
+                "paramedic_crew": 2,
+                "equipment": ["Oxygen Cylinder", "First Aid Kit", "Stretcher", "Suction Unit"],
+                "is_ready_station": True,
+                "coverage_radius_km": radius_km
+            })
+
+    opt_result["ready_mandal_stations"] = ready_stations
+
+    # Update active fleet in cache and dispatch engine:
+    # Combine selected priority ALS stations + all complementary ready mandal stations!
     active_fleet = []
     for stn in opt_result["selected_stations"]:
         active_fleet.append({
@@ -287,8 +333,19 @@ def optimize_positioning():
             "lng": stn["lng"],
             "district": stn["district"],
             "mandal": stn["mandal"],
+            "allocated_vehicle_type": stn.get("allocated_vehicle_type", "Advanced Life Support (ALS)")
+        })
+    for stn in ready_stations:
+        active_fleet.append({
+            "ambulance_id": stn["station_id"],
+            "name": stn["name"],
+            "lat": stn["lat"],
+            "lng": stn["lng"],
+            "district": stn["district"],
+            "mandal": stn["mandal"],
             "allocated_vehicle_type": stn.get("allocated_vehicle_type", "Basic Life Support (BLS)")
         })
+
     DATA_CACHE["active_fleet"] = active_fleet
     dispatch_engine.update_fleet(active_fleet)
 
@@ -296,7 +353,7 @@ def optimize_positioning():
     evaluator = GoldenHourEvaluator(mandals, blackspots)
     base_fleet_district = [
         a for a in DATA_CACHE["baseline_ambulances"]
-        if district == "ALL" or a["district"].lower() == district.lower()
+        if district == "ALL" or match_district(a["district"], district)
     ]
     comparison = evaluator.compare(base_fleet_district, active_fleet)
 
@@ -372,10 +429,10 @@ def place_ambulance_nearer():
 def get_village_danger_spots():
     """Returns danger spots for villages filtered by district."""
     district = request.args.get("district", "ALL")
-    limit = int(request.args.get("limit", 400))
+    limit = int(request.args.get("limit", 2500))
     villages = DATA_CACHE.get("villages", [])
     if district and district != "ALL":
-        villages = [v for v in villages if v["district"].lower() == district.lower()]
+        villages = [v for v in villages if match_district(v["district"], district)]
 
     danger_spots = []
     for v in villages[:limit]:

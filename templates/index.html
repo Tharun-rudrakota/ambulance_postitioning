@@ -77,7 +77,7 @@
           <select id="district-select" class="form-control">
             <option value="ALL">All 26 Districts (Statewide)</option>
             {% for d in districts %}
-            <option value="{{ d }}">{{ d }}</option>
+            <option value="{{ d }}">{% if d == 'SPS Nellore' %}SPS Nellore (Nellore){% else %}{{ d }}{% endif %}</option>
             {% endfor %}
           </select>
         </div>
@@ -178,9 +178,10 @@
             </div>
             <div><strong>Hospital Transfer:</strong> <span id="disp-hospital-eta" style="color:#c084fc;">--</span></div>
             <div><strong>Apex Trauma Center:</strong> <span id="disp-apex-hospital" style="color:var(--text-muted);">--</span></div>
-            <button id="btn-place-ambulance-nearer" class="btn btn-sm btn-success btn-block" style="margin-top: 10px; width: 100%; font-size: 0.78rem; font-weight: 700;">
-              <i class="fa-solid fa-truck-fast"></i> ⚡ Place Ambulance Position Nearer (Save Time)
-            </button>
+            <div id="disp-ready-station-status" style="margin-top: 10px; padding: 6px 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 4px; font-size: 0.76rem; color: #10b981; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-shield-check" style="font-size: 1rem;"></i>
+              <span><strong>Ready 108 Unit Stationed at Mandal HQ:</strong> Rapid CAD dispatch active (&lt; 15 min Golden Hour)</span>
+            </div>
           </div>
         </div>
       </section>
@@ -197,7 +198,7 @@
           <div class="legend-item">
             <input type="checkbox" id="layer-opt-ambulances" checked>
             <label for="layer-opt-ambulances">
-              <span class="legend-color-dot" style="background:#10b981;"></span> Optimal Ambulances (ALS/BLS)
+              <span class="legend-color-dot" style="background:#10b981;"></span> Ready 108 Ambulances (All Mandals Covered)
             </label>
           </div>
           <div class="legend-item">
@@ -233,7 +234,7 @@
           <div class="legend-item">
             <input type="checkbox" id="layer-village-danger" checked>
             <label for="layer-village-danger">
-              <span class="legend-color-dot" style="background:#dc2626; border:1px solid #f87171;"></span> <strong>Village Danger Spots (10,858)</strong>
+              <span class="legend-color-dot" style="background:#dc2626; border:1px solid #f87171;"></span> <strong>Village Danger Zones (10,858)</strong>
             </label>
           </div>
           <div class="legend-item">

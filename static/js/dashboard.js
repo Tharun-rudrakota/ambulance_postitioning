@@ -22,7 +22,31 @@ let layers = {
 
 let currentBlackspots = [];
 let currentOptimalStations = [];
+let currentReadyStations = [];
+let allMandals = [];
 let lastIncident = { lat: 16.312, lng: 80.451, label: "Emergency Scene", district: "General", mandal: "Local" };
+
+function matchDistrict(d1, d2) {
+  if (!d1 || !d2) return false;
+  const aliases = {
+    "nellore": "sps nellore",
+    "sps nellore": "sps nellore",
+    "sri potti sriramulu nellore": "sps nellore",
+    "kadapa": "ysr kadapa",
+    "ysr kadapa": "ysr kadapa",
+    "ysr": "ysr kadapa",
+    "konaseema": "dr. b.r. ambedkar konaseema",
+    "dr. b.r. ambedkar konaseema": "dr. b.r. ambedkar konaseema",
+    "manyam": "parvathipuram manyam",
+    "parvathipuram manyam": "parvathipuram manyam",
+    "alluri": "alluri sitharama raju",
+    "asr": "alluri sitharama raju",
+    "alluri sitharama raju": "alluri sitharama raju"
+  };
+  const k1 = aliases[d1.trim().toLowerCase()] || d1.trim().toLowerCase();
+  const k2 = aliases[d2.trim().toLowerCase()] || d2.trim().toLowerCase();
+  return k1 === k2;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
@@ -178,8 +202,11 @@ function setupEventListeners() {
       document.getElementById("ambulance-slider").value = 45;
       document.getElementById("ambulance-count-val").textContent = "45";
     } else {
-      document.getElementById("ambulance-slider").value = 14;
-      document.getElementById("ambulance-count-val").textContent = "14";
+      const distMandals = allMandals.filter(m => matchDistrict(m.district, district));
+      const mCount = distMandals.length || 20;
+      document.getElementById("ambulance-slider").max = Math.max(mCount + 10, 50);
+      document.getElementById("ambulance-slider").value = mCount;
+      document.getElementById("ambulance-count-val").textContent = `${mCount} (All Mandals Covered)`;
     }
     runOptimization();
   });
@@ -218,7 +245,8 @@ async function loadInitialData() {
     // 3. Load Mandals
     const mandalRes = await fetch("/api/mandals?district=ALL");
     const mandalData = await mandalRes.json();
-    renderMandals(mandalData.mandals || []);
+    allMandals = mandalData.mandals || [];
+    renderMandals(allMandals);
 
     // 4. Run initial optimization
     await runOptimization();
@@ -252,7 +280,8 @@ async function runOptimization() {
     const data = await res.json();
     if (data.status === "success") {
       currentOptimalStations = data.optimization.selected_stations || [];
-      renderOptimalAmbulances(currentOptimalStations, radiusKm);
+      currentReadyStations = data.optimization.ready_mandal_stations || [];
+      renderOptimalAmbulances(currentOptimalStations, currentReadyStations, radiusKm);
       updateKPIs(data);
 
       // Load blackspots for this district or state
@@ -261,8 +290,8 @@ async function runOptimization() {
       currentBlackspots = bsData.blackspots || [];
       renderBlackspots(currentBlackspots);
 
-      // Load villages for this district (or state sample)
-      const vLimit = district === "ALL" ? 400 : 1000;
+      // Load villages for this district (load full dataset without cut-off)
+      const vLimit = district === "ALL" ? 400 : 2500;
       const vRes = await fetch(`/api/villages?district=${encodeURIComponent(district)}&limit=${vLimit}`);
       const vData = await vRes.json();
       renderVillages(vData.villages || []);
@@ -272,10 +301,17 @@ async function runOptimization() {
       const vdData = await vdRes.json();
       renderVillageDangerSpots(vdData.danger_spots || []);
 
-      // Adjust map bounds
-      if (district !== "ALL" && currentOptimalStations.length > 0) {
-        const bounds = L.latLngBounds(currentOptimalStations.map(s => [s.lat, s.lng]));
-        map.fitBounds(bounds, { padding: [50, 50] });
+      // Adjust map bounds to encompass all stations, mandals, and villages
+      if (district !== "ALL") {
+        const boundsCoords = [];
+        currentOptimalStations.forEach(s => boundsCoords.push([s.lat, s.lng]));
+        currentReadyStations.forEach(s => boundsCoords.push([s.lat, s.lng]));
+        if (vData.villages && vData.villages.length > 0) {
+          vData.villages.forEach(v => boundsCoords.push([v.lat, v.lng]));
+        }
+        if (boundsCoords.length > 0) {
+          map.fitBounds(L.latLngBounds(boundsCoords), { padding: [35, 35] });
+        }
       }
     }
   } catch (err) {
@@ -314,12 +350,13 @@ function updateKPIs(data) {
   document.getElementById("kpi-blindspots-delta").textContent = `${deltas.blindspots_eliminated || 0} Blindspots Resolved`;
 }
 
-function renderOptimalAmbulances(stations, radiusKm) {
+function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) {
   layers.optAmbulances.clearLayers();
   layers.coverageCircles.clearLayers();
 
   const radiusMeters = radiusKm * 1000;
 
+  // 1. Render Priority ALS Stations
   stations.forEach((stn, idx) => {
     const isALS = stn.allocated_vehicle_type && stn.allocated_vehicle_type.includes("ALS");
     const markerColor = isALS ? "#10b981" : "#06b6d4";
@@ -336,21 +373,22 @@ function renderOptimalAmbulances(stations, radiusKm) {
     });
 
     const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
-    marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge">${stn.allocated_vehicle_type || 'BLS'}</span>`, {
+    marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge">${stn.allocated_vehicle_type || 'ALS'}</span>`, {
       permanent: true,
       direction: "bottom",
       className: "bold-map-label ambulance-label",
       offset: [0, 8]
     });
     marker.bindPopup(`
-      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:180px;">
-        <strong style="color:${markerColor}; font-size:13px;">${stn.name}</strong><br>
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:190px;">
+        <strong style="color:${markerColor}; font-size:13px;"><i class="fa-solid fa-truck-medical"></i> ${stn.name}</strong><br>
         <strong>District:</strong> ${stn.district}<br>
         <strong>Mandal:</strong> ${stn.mandal}<br>
-        <strong>Vehicle Class:</strong> <span style="font-weight:700; color:${markerColor};">${stn.allocated_vehicle_type || 'BLS'}</span><br>
-        <strong>Paramedic Crew:</strong> ${stn.paramedic_crew || 2} Officers<br>
+        <strong>Vehicle Class:</strong> <span style="font-weight:700; color:${markerColor};">${stn.allocated_vehicle_type || 'ALS'}</span><br>
+        <strong>Paramedic Crew:</strong> ${stn.paramedic_crew || 3} Officers<br>
+        <strong>Equipment:</strong> ${(stn.equipment || []).join(", ") || 'Ventilator, Defibrillator, Cardiac Monitor'}<br>
         <strong>Coverage Radius:</strong> ${radiusKm} km (~15 min response)<br>
-        <strong>Covered Nodes:</strong> ${stn.covered_demand_count || 0}
+        <span style="background:#dcfce7; color:#15803d; font-weight:700; padding:1px 6px; border-radius:4px; font-size:10px;">Primary ALS Corridor Interceptor</span>
       </div>
     `);
     layers.optAmbulances.addLayer(marker);
@@ -365,6 +403,41 @@ function renderOptimalAmbulances(stations, radiusKm) {
       fillOpacity: 0.12
     });
     layers.coverageCircles.addLayer(circle);
+  });
+
+  // 2. Render Ready Mandal Stations (guarantees every mandal including Duttalur has a stationed ready ambulance)
+  readyStations.forEach(stn => {
+    const customIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div style="background:#0284c7; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; border:2px solid #fff; box-shadow:0 0 10px rgba(2, 132, 199, 0.8);">
+          <i class="fa-solid fa-truck-medical" style="font-size:12px;"></i>
+        </div>
+      `,
+      iconSize: [26, 26],
+      iconAnchor: [13, 13]
+    });
+
+    const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
+    marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge ready-badge">Ready 108 Post</span>`, {
+      permanent: true,
+      direction: "bottom",
+      className: "bold-map-label ambulance-label ready-ambulance-label",
+      offset: [0, 8]
+    });
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:200px;">
+        <strong style="color:#0284c7; font-size:13px;"><i class="fa-solid fa-truck-medical"></i> ${stn.name}</strong><br>
+        <strong>Class:</strong> Basic Life Support (BLS) - Ready Post<br>
+        <strong>District:</strong> ${stn.district} | <strong>Mandal:</strong> ${stn.mandal}<br>
+        <strong>Status:</strong> <span style="background:#dcfce7; color:#15803d; font-weight:700; padding:1px 6px; border-radius:4px;">Active & Ready</span><br>
+        <strong>Paramedic Crew:</strong> 2 EMT Officers<br>
+        <strong>Equipment:</strong> Oxygen Cylinder, Stretcher, First Aid Kit, Suction Unit<br>
+        <hr style="margin:5px 0; border:0; border-top:1px solid #e2e8f0;">
+        <small style="color:#64748b;">Permanently stationed at ${stn.mandal} Mandal HQ for &lt; 15 min rapid village response.</small>
+      </div>
+    `);
+    layers.optAmbulances.addLayer(marker);
   });
 }
 
@@ -537,12 +610,13 @@ function renderVillages(villages) {
           <strong style="color:#dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Spot:</strong> ${dsInfo.name}<br>
           <strong>Hazard:</strong> ${dsInfo.hazard_type}<br>
         </div>
-        <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px;">
-          <button onclick="handleAccidentReport(${v.lat}, ${v.lng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer;">
-            <i class="fa-solid fa-truck-medical"></i> 🚨 Test Dispatch Here
-          </button>
-          <button onclick="placeAmbulanceNearer(${v.lat}, ${v.lng}, '${v.village_name.replace(/'/g, "\\'")}', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#10b981; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer;">
-            <i class="fa-solid fa-truck-fast"></i> ⚡ Place Ambulance Nearer
+        <div style="margin-top:6px; padding:4px 6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:4px;">
+          <strong style="color:#15803d;"><i class="fa-solid fa-truck-medical"></i> Ready 108 Station:</strong><br>
+          <span style="color:#166534; font-weight:600;">${v.mandal} Mandal HQ Station</span> (< 5 min response)
+        </div>
+        <div style="margin-top:8px;">
+          <button onclick="handleAccidentReport(${v.lat}, ${v.lng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
+            <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch Here
           </button>
         </div>
       </div>
@@ -555,39 +629,55 @@ function renderVillageDangerSpots(dangerSpots) {
   layers.villageDanger.clearLayers();
 
   dangerSpots.forEach(ds => {
+    const isCritical = ds.severity === "Critical Risk";
+    const zoneColor = isCritical ? "#dc2626" : "#ea580c";
+
+    // 1. Visible Danger Zone Hazard Perimeter Circle (650m radius)
+    const zoneCircle = L.circle([ds.lat, ds.lng], {
+      radius: 650,
+      color: zoneColor,
+      weight: 1.8,
+      dashArray: "4, 4",
+      fillColor: isCritical ? "#ef4444" : "#f97316",
+      fillOpacity: 0.22
+    });
+    layers.villageDanger.addLayer(zoneCircle);
+
+    // 2. Center Danger Warning Icon Marker
     const icon = L.divIcon({
       className: "custom-div-icon",
       html: `
-        <div class="marker-village-danger" style="width:20px; height:20px;">
-          <i class="fa-solid fa-triangle-exclamation" style="font-size:10px;"></i>
+        <div class="marker-village-danger ${isCritical ? 'critical' : 'high'}" style="width:22px; height:22px;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:11px;"></i>
         </div>
       `,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10]
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
     });
 
     const marker = L.marker([ds.lat, ds.lng], { icon: icon });
-    marker.bindTooltip(`<b>⚠️ ${ds.name}</b> <small style="color:#fca5a5;">(${ds.severity})</small>`, {
+    marker.bindTooltip(`<b>⚠️ ${ds.village_name} Danger Zone</b><br><small style="color:#fca5a5;">${ds.hazard_type} (${ds.severity})</small>`, {
       direction: "top",
       className: "bold-map-label danger-label",
       offset: [0, -8]
     });
 
     marker.bindPopup(`
-      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:210px;">
-        <strong style="color:#dc2626; font-size:13px;"><i class="fa-solid fa-triangle-exclamation"></i> Village Danger Spot</strong><br>
-        <span style="font-weight:700; color:#b91c1c;">${ds.name}</span><br>
-        <strong>Village:</strong> ${ds.village_name} (${ds.mandal} Mdl, ${ds.district} Dt)<br>
-        <strong>Hazard Type:</strong> <span style="font-weight:600; color:#ea580c;">${ds.hazard_type}</span><br>
-        <strong>Severity:</strong> <span style="background:#fee2e2; color:#991b1b; padding:1px 6px; border-radius:4px; font-weight:700;">${ds.severity}</span><br>
-        <strong>Annual Accidents:</strong> ${ds.annual_accidents} | <strong>Fatalities:</strong> ${ds.fatalities}<br>
-        <strong>Primary Cause:</strong> ${ds.causes || 'High-speed curve bottleneck'}<br>
-        <div style="display:flex; flex-direction:column; gap:4px; margin-top:8px;">
-          <button onclick="handleAccidentReport(${ds.lat}, ${ds.lng}, '${ds.name.replace(/'/g, "\\'")}', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer;">
-            <i class="fa-solid fa-car-burst"></i> 🚨 Test Emergency Dispatch
-          </button>
-          <button onclick="placeAmbulanceNearer(${ds.lat}, ${ds.lng}, '${ds.name.replace(/'/g, "\\'")}', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#10b981; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer;">
-            <i class="fa-solid fa-truck-fast"></i> ⚡ Place Ambulance Nearer
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:230px;">
+        <strong style="color:#dc2626; font-size:13px;"><i class="fa-solid fa-triangle-exclamation"></i> Village Danger Zone</strong><br>
+        <span style="font-weight:700; color:#b91c1c; font-size:13px;">${ds.village_name}</span> (${ds.mandal} Mandal, ${ds.district})<br>
+        <hr style="margin:5px 0; border:0; border-top:1px solid #fee2e2;">
+        <strong>Hazard Zone:</strong> <span style="font-weight:600; color:#ea580c;">${ds.hazard_type}</span><br>
+        <strong>Risk Severity:</strong> <span style="background:#fee2e2; color:#991b1b; padding:1px 6px; border-radius:4px; font-weight:700;">${ds.severity}</span><br>
+        <strong>Crash Metrics:</strong> ${ds.annual_accidents} accidents/yr | ${ds.fatalities} fatalities<br>
+        <strong>Causes:</strong> ${ds.causes || 'Blind curve / high-speed intersection'}<br>
+        <div style="margin-top:6px; padding:4px 6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:4px;">
+          <strong style="color:#15803d;"><i class="fa-solid fa-truck-medical"></i> Stationed Ready Ambulance:</strong><br>
+          <span style="color:#166534; font-weight:600;">${ds.mandal} 108 Ready Emergency Station</span> (< 5 min response)
+        </div>
+        <div style="margin-top:8px;">
+          <button onclick="handleAccidentReport(${ds.lat}, ${ds.lng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone (${ds.mandal} Mdl)', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
+            <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch to Danger Zone
           </button>
         </div>
       </div>
@@ -840,18 +930,18 @@ async function handleAccidentReport(lat, lng, locationLabel = "", district = "Ge
 
       // Incident popup on crash marker
       incidentMarker.bindPopup(`
-        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:220px;">
-          <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-car-burst"></i> Emergency Crash Site</strong><br>
+        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:225px;">
+          <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-car-burst"></i> Emergency Incident Scene</strong><br>
           ${locationLabel ? `<strong>Location:</strong> ${locationLabel}<br>` : ''}
-          <strong>Dispatched:</strong> ${amb.name} (${metrics.road_distance_km} km)<br>
-          <strong>Ambulance Arrival:</strong> <span style="font-weight:700; color:${metrics.status_color};">${metrics.estimated_eta_minutes} min</span><br>
-          <hr style="margin:4px 0; border:0; border-top:1px solid #e2e8f0;">
-          <strong style="color:#8b5cf6;"><i class="fa-solid fa-hospital"></i> Nearest Hospital:</strong> ${nearestHosp.name}<br>
-          <strong>Hospital Transfer:</strong> ${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes} min)<br>
-          <strong>Golden Hour Status:</strong> ${metrics.golden_hour_status}<br>
-          <button onclick="placeAmbulanceNearer(${lat}, ${lng}, '${(locationLabel || 'Incident Scene').replace(/'/g, "\\'")}', '${district.replace(/'/g, "\\'")}', '${mandal.replace(/'/g, "\\'")}')" style="margin-top:8px; background:#10b981; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; width:100%;">
-            <i class="fa-solid fa-truck-fast"></i> ⚡ Place Ambulance Nearer (Save Time)
-          </button>
+          <strong>Dispatched Unit:</strong> ${amb.name} (${metrics.road_distance_km} km)<br>
+          <strong>Ambulance Arrival:</strong> <span style="font-weight:700; color:${metrics.status_color};">${metrics.estimated_eta_minutes} min</span> (${metrics.status_label})<br>
+          <div style="margin-top:5px; padding:4px 6px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:4px; font-size:11px; color:#15803d;">
+            <i class="fa-solid fa-shield-check"></i> <strong>Stationed Ready 108 Unit:</strong> Assigned from ${amb.mandal || 'Local'} HQ
+          </div>
+          <hr style="margin:5px 0; border:0; border-top:1px solid #e2e8f0;">
+          <strong style="color:#8b5cf6;"><i class="fa-solid fa-hospital"></i> Referral Facility:</strong> ${nearestHosp.name}<br>
+          <strong>Transfer Route:</strong> ${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes} min)<br>
+          <strong>Golden Hour Status:</strong> ${metrics.golden_hour_status}
         </div>
       `).openPopup();
 
