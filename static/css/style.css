@@ -521,3 +521,69 @@ body {
   background: #64748b;
   border: 1px solid #fff;
 }
+
+.marker-village {
+  background: #eab308;
+  border: 1px solid #fff;
+}
+
+/* Village Search Autocomplete Dropdown */
+.village-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #0f172a;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 1050;
+  margin-top: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.75);
+}
+
+.village-search-dropdown.hidden {
+  display: none;
+}
+
+.village-search-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.village-search-item:last-child {
+  border-bottom: none;
+}
+
+.village-search-item:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.village-search-item .v-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.village-search-item .v-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.village-search-item .badge-phc {
+  background: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+}

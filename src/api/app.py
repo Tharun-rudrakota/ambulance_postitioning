@@ -29,7 +29,8 @@ DATA_CACHE = {
     "mandals": [],
     "blackspots": [],
     "baseline_ambulances": [],
-    "active_fleet": []
+    "active_fleet": [],
+    "villages": []
 }
 
 def load_data():
@@ -37,8 +38,9 @@ def load_data():
     dm_path = os.path.join(DATA_DIR, "ap_districts_mandals.json")
     bs_path = os.path.join(DATA_DIR, "ap_highways_blackspots.json")
     amb_path = os.path.join(DATA_DIR, "ap_baseline_ambulances.json")
+    vil_path = os.path.join(DATA_DIR, "ap_villages.json")
 
-    if not os.path.exists(dm_path) or not os.path.exists(bs_path):
+    if not os.path.exists(dm_path) or not os.path.exists(bs_path) or not os.path.exists(vil_path):
         from ..data.dataset_generator import generate_complete_dataset
         generate_complete_dataset(DATA_DIR)
 
@@ -56,6 +58,11 @@ def load_data():
         DATA_CACHE["baseline_ambulances"] = amb_data.get("ambulances", [])
         DATA_CACHE["active_fleet"] = DATA_CACHE["baseline_ambulances"].copy()
 
+    if os.path.exists(vil_path):
+        with open(vil_path, "r", encoding="utf-8") as f:
+            vil_data = json.load(f)
+            DATA_CACHE["villages"] = vil_data.get("villages", [])
+
 # Initialize data on startup
 load_data()
 dispatch_engine = DispatchEngine(DATA_CACHE["active_fleet"])
@@ -69,6 +76,7 @@ def index():
         districts=sorted(district_names),
         total_districts=len(DATA_CACHE["districts"]),
         total_mandals=len(DATA_CACHE["mandals"]),
+        total_villages=len(DATA_CACHE["villages"]),
         total_blackspots=len(DATA_CACHE["blackspots"]),
         baseline_ambulances_count=len(DATA_CACHE["baseline_ambulances"])
     )
@@ -132,6 +140,58 @@ def get_trauma_centers():
     return jsonify({
         "status": "success",
         "trauma_centers": MAJOR_TRAUMA_CENTERS
+    })
+
+@app.route("/api/villages", methods=["GET"])
+def get_villages():
+    """Returns villages filtered by district and optional mandal."""
+    district = request.args.get("district", "ALL")
+    mandal = request.args.get("mandal", "ALL")
+    limit = int(request.args.get("limit", 600))
+
+    villages = DATA_CACHE.get("villages", [])
+    if district and district != "ALL":
+        villages = [v for v in villages if v["district"].lower() == district.lower()]
+    if mandal and mandal != "ALL":
+        villages = [v for v in villages if v["mandal"].lower() == mandal.lower()]
+
+    return jsonify({
+        "status": "success",
+        "total": len(villages),
+        "district": district,
+        "mandal": mandal,
+        "villages": villages[:limit]
+    })
+
+@app.route("/api/search_village", methods=["GET"])
+def search_village():
+    """Autocomplete search for any village in Andhra Pradesh by name."""
+    query = request.args.get("q", "").strip().lower()
+    if not query or len(query) < 2:
+        return jsonify({"status": "success", "results": []})
+
+    results = []
+    for v in DATA_CACHE.get("villages", []):
+        if query in v["village_name"].lower() or query in v["mandal"].lower():
+            results.append({
+                "village_id": v["village_id"],
+                "village_name": v["village_name"],
+                "mandal": v["mandal"],
+                "district": v["district"],
+                "lat": v["lat"],
+                "lng": v["lng"],
+                "population": v["population"],
+                "gram_panchayat": v.get("gram_panchayat", ""),
+                "has_phc": v.get("has_phc", False),
+                "label": f"{v['village_name']} ({v['mandal']} Mdl, {v['district']} Dt)"
+            })
+            if len(results) >= 25:
+                break
+
+    return jsonify({
+        "status": "success",
+        "query": query,
+        "results": results
     })
 
 @app.route("/api/optimize", methods=["POST"])

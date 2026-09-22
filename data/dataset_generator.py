@@ -416,11 +416,26 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
 
+# Realistic AP Village Naming Components
+AP_VILLAGE_PREFIXES = [
+    "Pedda", "Chinna", "Kotha", "Patha", "Venkata", "Rama", "Thimma", "Gollapudi",
+    "Anantha", "Narasimha", "Sompeta", "Gangavaram", "Appapuram", "Mallavaram",
+    "Rayavaram", "Sivapuram", "Kondapuram", "Bheemavaram", "Nagaram", "Mutyalapadu",
+    "Kanumuru", "Chinnaganjam", "Lakshmipuram", "Hanuman", "Govindapuram", "Devipatnam",
+    "Sitaramapuram", "Rajarajapuram", "Lingamguntla", "Tadikalapudi", "Nutakki", "Namburu",
+    "Dokiparru", "Mothadaka", "Kaza", "Undavalli", "Penumaka", "Vaddeswaram", "Kolakaluru"
+]
+
+AP_VILLAGE_SUFFIXES = [
+    "puram", "palli", "palle", "padu", "gudem", "cheruvu", "palem", "kuru", "valasa",
+    "konda", "peta", "varam", "dinne", "kotta", "agraharam", "khandriga", "metla", "guntla"
+]
+
 def generate_complete_dataset(output_dir="data"):
     """
     Generates structured datasets for:
-    1. All 26 AP Districts and their 679 Mandals with coordinates, population, and accident weight.
-    2. 1200+ Accident Blackspots across high-risk corridors.
+    1. All 26 AP Districts, 679 Mandals, and 10,000+ Villages/Gram Panchayats.
+    2. 500+ Accident Blackspots across high-risk corridors.
     3. Baseline ambulance fleet allocation (current 108 positioning).
     """
     os.makedirs(output_dir, exist_ok=True)
@@ -428,10 +443,12 @@ def generate_complete_dataset(output_dir="data"):
 
     districts_list = []
     all_mandals = []
+    all_villages = []
     all_blackspots = []
     baseline_ambulances = []
 
     mandal_id_counter = 1
+    village_id_counter = 1
     blackspot_id_counter = 1
     ambulance_id_counter = 1
 
@@ -495,6 +512,46 @@ def generate_complete_dataset(output_dir="data"):
             # Accident Risk Score: normalized index (1.0 to 10.0)
             risk_score = round(min(10.0, (base_accidents / 8.0) + (population / 250000.0)), 2)
 
+            # Generate 14 to 18 villages/Gram Panchayats for this mandal
+            m_villages = []
+            num_v = random.randint(14, 18)
+            for v_idx in range(num_v):
+                v_prefix = AP_VILLAGE_PREFIXES[(v_idx * 7 + i * 3) % len(AP_VILLAGE_PREFIXES)]
+                v_suffix = AP_VILLAGE_SUFFIXES[(v_idx * 5 + i * 2) % len(AP_VILLAGE_SUFFIXES)]
+                if v_idx == 0:
+                    v_name = f"{m_name} Gramam"
+                elif v_idx == 1:
+                    v_name = f"Kotha {m_name}"
+                else:
+                    v_name = f"{v_prefix}{v_suffix}"
+
+                v_angle = (2 * math.pi / num_v) * v_idx + random.uniform(-0.1, 0.1)
+                v_dist_km = random.uniform(1.8, 11.5)
+                v_deg_lat = (v_dist_km / 111.0) * math.cos(v_angle)
+                v_deg_lng = (v_dist_km / (111.0 * math.cos(math.radians(m_lat)))) * math.sin(v_angle)
+
+                v_lat = round(m_lat + v_deg_lat, 5)
+                v_lng = round(m_lng + v_deg_lng, 5)
+                v_pop = random.randint(1200, 8500)
+                has_phc = True if v_idx < 2 else False
+
+                village_obj = {
+                    "village_id": f"AP-VIL-{village_id_counter:05d}",
+                    "village_name": v_name,
+                    "mandal": m_name,
+                    "district": d_name,
+                    "lat": v_lat,
+                    "lng": v_lng,
+                    "population": v_pop,
+                    "gram_panchayat": f"{v_name} Grama Panchayat",
+                    "has_phc": has_phc,
+                    "distance_from_mandal_hq_km": round(v_dist_km, 1),
+                    "risk_score": round(min(9.5, max(1.5, risk_score + random.uniform(-1.2, 1.2))), 1)
+                }
+                all_villages.append(village_obj)
+                m_villages.append(v_name)
+                village_id_counter += 1
+
             mandal_obj = {
                 "mandal_id": f"AP-MDL-{mandal_id_counter:04d}",
                 "district": d_name,
@@ -506,7 +563,9 @@ def generate_complete_dataset(output_dir="data"):
                 "is_highway_corridor": is_highway_corridor,
                 "annual_accidents": base_accidents,
                 "risk_score": risk_score,
-                "primary_roads": d_info["highways"]
+                "primary_roads": d_info["highways"],
+                "village_count": len(m_villages),
+                "sample_villages": m_villages[:5]
             }
             all_mandals.append(mandal_obj)
             mandal_id_counter += 1
@@ -604,6 +663,16 @@ def generate_complete_dataset(output_dir="data"):
             "blackspots": all_blackspots
         }, f, indent=2)
 
+    villages_file = os.path.join(output_dir, "ap_villages.json")
+    with open(villages_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "state": "Andhra Pradesh",
+            "total_districts": len(districts_list),
+            "total_mandals": len(all_mandals),
+            "total_villages": len(all_villages),
+            "villages": all_villages
+        }, f, indent=2)
+
     baseline_amb_file = os.path.join(output_dir, "ap_baseline_ambulances.json")
     with open(baseline_amb_file, "w", encoding="utf-8") as f:
         json.dump({
@@ -615,9 +684,10 @@ def generate_complete_dataset(output_dir="data"):
     print(f"Dataset generated successfully:")
     print(f"- Districts: {len(districts_list)}")
     print(f"- Mandals: {len(all_mandals)} (Target: 679 mandals)")
+    print(f"- Villages / Gram Panchayats: {len(all_villages)}")
     print(f"- Accident Blackspots: {len(all_blackspots)}")
     print(f"- Baseline Ambulances: {len(baseline_ambulances)}")
-    return districts_mandals_file, blackspots_file, baseline_amb_file
+    return districts_mandals_file, villages_file, blackspots_file, baseline_amb_file
 
 if __name__ == "__main__":
     generate_complete_dataset()

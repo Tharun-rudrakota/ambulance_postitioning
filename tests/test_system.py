@@ -160,5 +160,34 @@ class TestAPAmbulanceOptimizer(unittest.TestCase):
         self.assertEqual(data["status"], "success")
         self.assertIn("dispatched_ambulance", data["dispatch"])
 
+    def test_07_village_apis(self):
+        """Test Village dataset coverage and autocomplete search API."""
+        villages = DATA_CACHE.get("villages", [])
+        self.assertGreaterEqual(len(villages), 10000, f"Expected >=10000 villages, got {len(villages)}")
+
+        client = app.test_client()
+
+        # 1. Test villages endpoint by district
+        res = client.get("/api/villages?district=Guntur&limit=50")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertGreater(data["total"], 0)
+        self.assertLessEqual(len(data["villages"]), 50)
+        self.assertEqual(data["villages"][0]["district"], "Guntur")
+
+        # 2. Test autocomplete search
+        res = client.get("/api/search_village?q=kaza")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertGreater(len(data["results"]), 0)
+        first_result = data["results"][0]
+        self.assertIn("village_name", first_result)
+        self.assertIn("mandal", first_result)
+        self.assertIn("district", first_result)
+        self.assertIn("lat", first_result)
+        self.assertIn("lng", first_result)
+
 if __name__ == "__main__":
     unittest.main()

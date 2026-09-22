@@ -11,6 +11,7 @@ let layers = {
   blackspots: L.layerGroup(),
   baseline: L.layerGroup(),
   mandals: L.layerGroup(),
+  villages: L.layerGroup(),
   traumaCenters: L.layerGroup(),
   incidents: L.layerGroup()
 };
@@ -79,9 +80,18 @@ function setupEventListeners() {
   document.getElementById("layer-mandals").addEventListener("change", (e) => {
     toggleLayer(layers.mandals, e.target.checked);
   });
+  const layerVillagesEl = document.getElementById("layer-villages");
+  if (layerVillagesEl) {
+    layerVillagesEl.addEventListener("change", (e) => {
+      toggleLayer(layers.villages, e.target.checked);
+    });
+  }
   document.getElementById("layer-trauma-centers").addEventListener("change", (e) => {
     toggleLayer(layers.traumaCenters, e.target.checked);
   });
+
+  // Village Autocomplete Search Setup
+  setupVillageSearch();
 
   // Recompute Optimization Button
   document.getElementById("btn-run-optimization").addEventListener("click", runOptimization);
@@ -175,6 +185,12 @@ async function runOptimization() {
       const bsData = await bsRes.json();
       currentBlackspots = bsData.blackspots || [];
       renderBlackspots(currentBlackspots);
+
+      // Load villages for this district (or state sample)
+      const vLimit = district === "ALL" ? 400 : 1000;
+      const vRes = await fetch(`/api/villages?district=${encodeURIComponent(district)}&limit=${vLimit}`);
+      const vData = await vRes.json();
+      renderVillages(vData.villages || []);
 
       // Adjust map bounds
       if (district !== "ALL" && currentOptimalStations.length > 0) {
@@ -377,6 +393,113 @@ function renderMandals(mandals) {
       </div>
     `);
     layers.mandals.addLayer(circle);
+  });
+}
+
+function renderVillages(villages) {
+  layers.villages.clearLayers();
+
+  villages.forEach(v => {
+    const isPhc = v.has_phc;
+    const color = isPhc ? "#10b981" : "#eab308";
+    const circle = L.circleMarker([v.lat, v.lng], {
+      radius: isPhc ? 3.5 : 2.5,
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.75,
+      weight: 1
+    });
+
+    circle.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:180px;">
+        <strong style="color:${color}; font-size:13px;"><i class="fa-solid fa-tree-city"></i> ${v.village_name}</strong><br>
+        <strong>Gram Panchayat:</strong> ${v.gram_panchayat || v.village_name}<br>
+        <strong>Mandal:</strong> ${v.mandal}<br>
+        <strong>District:</strong> ${v.district}<br>
+        <strong>Population:</strong> ${v.population.toLocaleString()}<br>
+        <strong>Healthcare:</strong> ${isPhc ? '<span style="color:#10b981; font-weight:600;">PHC / Sub-Center</span>' : 'ASHA / Sub-center Network'}<br>
+        <button onclick="handleAccidentReport(${v.lat}, ${v.lng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)')" style="margin-top:6px; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">
+          <i class="fa-solid fa-truck-medical"></i> Dispatch Emergency Here
+        </button>
+      </div>
+    `);
+    layers.villages.addLayer(circle);
+  });
+}
+
+function setupVillageSearch() {
+  const searchInput = document.getElementById("village-search-input");
+  const resultsDropdown = document.getElementById("village-search-results");
+  if (!searchInput || !resultsDropdown) return;
+
+  let debounceTimer = null;
+
+  searchInput.addEventListener("input", (e) => {
+    const val = e.target.value.trim();
+    clearTimeout(debounceTimer);
+
+    if (val.length < 2) {
+      resultsDropdown.innerHTML = "";
+      resultsDropdown.classList.add("hidden");
+      return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search_village?q=${encodeURIComponent(val)}`);
+        const data = await res.json();
+        const results = data.results || [];
+
+        if (results.length === 0) {
+          resultsDropdown.innerHTML = '<div style="padding:10px; color:var(--text-muted); font-size:12px; text-align:center;">No matching villages found</div>';
+          resultsDropdown.classList.remove("hidden");
+          return;
+        }
+
+        resultsDropdown.innerHTML = results.map(v => `
+          <div class="village-search-item" data-lat="${v.lat}" data-lng="${v.lng}" data-name="${v.village_name}" data-mandal="${v.mandal}" data-district="${v.district}">
+            <div class="v-name">
+              <span><i class="fa-solid fa-tree-city" style="color:#eab308; margin-right:6px;"></i>${v.village_name}</span>
+              ${v.has_phc ? '<span class="badge-phc">PHC</span>' : ''}
+            </div>
+            <div class="v-meta">
+              <span>Mandal: <strong>${v.mandal}</strong> | District: <strong>${v.district}</strong> | Pop: ${v.population.toLocaleString()}</span>
+            </div>
+          </div>
+        `).join("");
+
+        resultsDropdown.classList.remove("hidden");
+
+        // Add click listeners to items
+        resultsDropdown.querySelectorAll(".village-search-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const lat = parseFloat(item.dataset.lat);
+            const lng = parseFloat(item.dataset.lng);
+            const vName = item.dataset.name;
+            const mandal = item.dataset.mandal;
+            const district = item.dataset.district;
+
+            searchInput.value = `${vName} (${mandal}, ${district})`;
+            resultsDropdown.classList.add("hidden");
+
+            // Pan and zoom map to village
+            map.flyTo([lat, lng], 13, { duration: 1.2 });
+
+            // Trigger emergency accident / dispatch test for this village
+            handleAccidentReport(lat, lng, `${vName} Village (${mandal} Mandal, ${district})`);
+          });
+        });
+      } catch (err) {
+        console.error("Village search failed:", err);
+      }
+    }, 250);
+  });
+
+  // Close dropdown on click outside
+  document.addEventListener("click", (e) => {
+    if (!searchInput.contains(e.target) && !resultsDropdown.contains(e.target)) {
+      resultsDropdown.classList.add("hidden");
+    }
   });
 }
 
