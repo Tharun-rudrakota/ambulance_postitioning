@@ -35,10 +35,18 @@ function initMap() {
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
 
-  // Dark Matter tiles for emergency command center feel
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://carto.com/">CARTO</a>, &copy; OpenStreetMap contributors',
-    maxZoom: 19
+  // High-performance Dark Basemap (Clean, No API Key Required, No Watermark)
+  L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: '&copy; Esri, DeLorme, NAVTEQ',
+    maxZoom: 19,
+    maxNativeZoom: 16
+  }).addTo(map);
+
+  // Administrative Labels & Highway Overlays
+  L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+    attribution: '',
+    maxZoom: 19,
+    maxNativeZoom: 16
   }).addTo(map);
 
   // Add layer groups to map
