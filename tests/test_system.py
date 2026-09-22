@@ -189,5 +189,37 @@ class TestAPAmbulanceOptimizer(unittest.TestCase):
         self.assertIn("lat", first_result)
         self.assertIn("lng", first_result)
 
+    def test_08_village_danger_spots_and_place_nearer(self):
+        """Test Village Danger Spots API and Place Ambulance Nearer feature."""
+        client = app.test_client()
+
+        # 1. Test village danger spots
+        res = client.get("/api/village_danger_spots?district=Guntur&limit=20")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertGreater(len(data["danger_spots"]), 0)
+        ds = data["danger_spots"][0]
+        self.assertIn("hazard_type", ds)
+        self.assertIn("severity", ds)
+        self.assertIn("lat", ds)
+        self.assertIn("lng", ds)
+
+        # 2. Test place ambulance nearer
+        res = client.post("/api/place_ambulance_nearer", json={
+            "lat": ds["lat"],
+            "lng": ds["lng"],
+            "location_name": ds["name"],
+            "district": "Guntur",
+            "mandal": ds["mandal"]
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("station", data)
+        self.assertLess(data["dispatch"]["response_metrics"]["road_distance_km"], 2.0)
+        self.assertLess(data["dispatch"]["response_metrics"]["estimated_eta_minutes"], 5.0)
+        self.assertEqual(data["dispatch"]["response_metrics"]["golden_hour_status"], "GOLDEN_HOUR_MET")
+
 if __name__ == "__main__":
     unittest.main()

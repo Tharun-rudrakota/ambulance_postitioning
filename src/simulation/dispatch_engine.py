@@ -180,26 +180,43 @@ ALL_AP_EMERGENCY_HOSPITALS = [
 MAJOR_TRAUMA_CENTERS = ALL_AP_EMERGENCY_HOSPITALS
 
 class DispatchEngine:
-    def __init__(self, active_ambulance_stations: List[Dict[str, Any]]):
-        self.stations = active_ambulance_stations
+    def __init__(self, active_ambulance_stations: List[Dict[str, Any]], statewide_stations: Optional[List[Dict[str, Any]]] = None):
+        self.stations = active_ambulance_stations or []
+        self.statewide_stations = statewide_stations or []
+        self.custom_stations = []
 
     def update_fleet(self, new_stations: List[Dict[str, Any]]):
         self.stations = new_stations
 
+    def set_statewide_stations(self, stations: List[Dict[str, Any]]):
+        self.statewide_stations = stations
+
+    def add_custom_station(self, station: Dict[str, Any]):
+        self.custom_stations.insert(0, station)
+
     def dispatch_nearest_ambulance(self, accident_lat: float, accident_lng: float, severity: str = "Critical") -> Dict[str, Any]:
         """
         Dispatches the closest ambulance to the accident coordinates.
-        Finds the strictly nearest emergency referral hospital (Area Hospital / District Hospital / GGH),
-        and computes response routes and ETAs.
+        Checks custom nearer stations, optimized stations, and all statewide 108 stations,
+        guaranteeing that the closest ambulance is always dispatched.
         """
-        if not self.stations:
+        candidate_pool = []
+        seen_coords = set()
+
+        for s in (self.custom_stations + self.stations + self.statewide_stations):
+            coord = (round(s["lat"], 4), round(s["lng"], 4))
+            if coord not in seen_coords:
+                seen_coords.add(coord)
+                candidate_pool.append(s)
+
+        if not candidate_pool:
             return {"error": "No active ambulance stations available."}
 
         best_station = None
         min_dist_km = float("inf")
         min_eta_mins = float("inf")
 
-        for stn in self.stations:
+        for stn in candidate_pool:
             dist = estimate_road_distance(accident_lat, accident_lng, stn["lat"], stn["lng"])
             eta = estimate_travel_time_minutes(accident_lat, accident_lng, stn["lat"], stn["lng"])
             if dist < min_dist_km:

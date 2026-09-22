@@ -675,3 +675,54 @@ body {
   display: none !important;
 }
 
+/* Village Danger Spot Marker */
+.marker-village-danger {
+  background: #dc2626;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  box-shadow: 0 0 14px rgba(220, 38, 38, 0.9);
+  animation: dangerPulse 1.8s infinite ease-out;
+}
+
+@keyframes dangerPulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.8); }
+  70% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.bold-map-label.danger-label {
+  border-color: #dc2626 !important;
+  color: #fff !important;
+  background: rgba(30, 10, 10, 0.95) !important;
+}
+
+.bold-map-label.danger-label b {
+  color: #fca5a5 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+.marker-rapid-ambulance {
+  background: #10b981;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  box-shadow: 0 0 16px #10b981;
+  animation: rapidPulse 1.5s infinite ease-in-out;
+}
+
+@keyframes rapidPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px #10b981; }
+  50% { transform: scale(1.18); box-shadow: 0 0 22px #34d399; }
+}
+
+

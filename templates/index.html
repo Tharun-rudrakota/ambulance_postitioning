@@ -178,6 +178,9 @@
             </div>
             <div><strong>Hospital Transfer:</strong> <span id="disp-hospital-eta" style="color:#c084fc;">--</span></div>
             <div><strong>Apex Trauma Center:</strong> <span id="disp-apex-hospital" style="color:var(--text-muted);">--</span></div>
+            <button id="btn-place-ambulance-nearer" class="btn btn-sm btn-success btn-block" style="margin-top: 10px; width: 100%; font-size: 0.78rem; font-weight: 700;">
+              <i class="fa-solid fa-truck-fast"></i> ⚡ Place Ambulance Position Nearer (Save Time)
+            </button>
           </div>
         </div>
       </section>
@@ -225,6 +228,12 @@
             <input type="checkbox" id="layer-villages" checked>
             <label for="layer-villages">
               <span class="legend-color-dot" style="background:#eab308;"></span> Gram Panchayats / Villages (10,858)
+            </label>
+          </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-village-danger" checked>
+            <label for="layer-village-danger">
+              <span class="legend-color-dot" style="background:#dc2626; border:1px solid #f87171;"></span> <strong>Village Danger Spots (10,858)</strong>
             </label>
           </div>
           <div class="legend-item">

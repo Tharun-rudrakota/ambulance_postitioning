@@ -545,8 +545,44 @@ def generate_complete_dataset(output_dir="data"):
                     "population": v_pop,
                     "gram_panchayat": f"{v_name} Grama Panchayat",
                     "has_phc": has_phc,
+                v_risk = round(min(9.5, max(1.5, risk_score + random.uniform(-1.2, 1.2))), 1)
+                hazards = [
+                    ('Highway Junction Blackspot', 'High-speed intersection with national/state highway'),
+                    ('Canal Bund Blind Curve', 'Narrow canal road with steep drop-offs and sharp blind bend'),
+                    ('Culvert Bridge Approach', 'Narrow single-lane culvert bottleneck with high-speed collision risk'),
+                    ('Market Crossroad Bottleneck', 'Congested pedestrian & agricultural tractor crossing zone'),
+                    ('Ghat Road Hairpin Turn', 'Steep downhill curve with blind sightlines'),
+                    ('Unlit T-Junction Blackspot', 'Nighttime blind crossing with heavy freight movement'),
+                    ('Railway Gate Approach', 'Narrow queue zone near railway level crossing')
+                ]
+                ht, cause = hazards[v_idx % len(hazards)]
+                d_offset_m = random.uniform(220, 520)
+                d_lat = (d_offset_m / 111000.0) * math.cos(v_angle)
+                d_lng = (d_offset_m / (111000.0 * math.cos(math.radians(v_lat)))) * math.sin(v_angle)
+                d_acc = int(round(v_risk * random.uniform(1.3, 2.2)))
+
+                village_obj = {
+                    "village_id": f"AP-VIL-{village_id_counter:05d}",
+                    "village_name": v_name,
+                    "mandal": m_name,
+                    "district": d_name,
+                    "lat": v_lat,
+                    "lng": v_lng,
+                    "population": v_pop,
+                    "gram_panchayat": f"{v_name} Grama Panchayat",
+                    "has_phc": has_phc,
                     "distance_from_mandal_hq_km": round(v_dist_km, 1),
-                    "risk_score": round(min(9.5, max(1.5, risk_score + random.uniform(-1.2, 1.2))), 1)
+                    "risk_score": v_risk,
+                    "danger_spot": {
+                        "name": f"{v_name} {ht}",
+                        "hazard_type": ht,
+                        "severity": "Critical Risk" if v_risk >= 7.0 else "High Risk",
+                        "lat": round(v_lat + d_lat, 5),
+                        "lng": round(v_lng + d_lng, 5),
+                        "annual_accidents": d_acc,
+                        "fatalities": max(1, int(round(d_acc * random.uniform(0.22, 0.38)))),
+                        "causes": cause
+                    }
                 }
                 all_villages.append(village_obj)
                 m_villages.append(v_name)

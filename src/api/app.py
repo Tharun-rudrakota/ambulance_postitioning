@@ -8,6 +8,7 @@ import json
 from flask import Flask, render_template, request, jsonify, send_file
 import io
 import csv
+import time
 
 from ..algorithms.mclp import MCLPSolver
 from ..algorithms.p_median import PMedianSolver
@@ -63,9 +64,27 @@ def load_data():
             vil_data = json.load(f)
             DATA_CACHE["villages"] = vil_data.get("villages", [])
 
+    # Build statewide ambulance pool: baseline 108 stations + every mandal's CHC/PHC 108 emergency station
+    statewide = list(DATA_CACHE["baseline_ambulances"])
+    for m in DATA_CACHE.get("mandals", []):
+        statewide.append({
+            "station_id": f"MDL-108-{m['mandal_id']}",
+            "name": f"{m['mandal_name']} 108 Emergency Post",
+            "district": m["district"],
+            "mandal": m["mandal_name"],
+            "lat": m["lat"],
+            "lng": m["lng"],
+            "allocated_vehicle_type": "Basic Life Support (BLS)",
+            "is_mandal_post": True
+        })
+    DATA_CACHE["statewide_ambulances"] = statewide
+
 # Initialize data on startup
 load_data()
-dispatch_engine = DispatchEngine(DATA_CACHE["active_fleet"])
+dispatch_engine = DispatchEngine(
+    DATA_CACHE["active_fleet"],
+    statewide_stations=DATA_CACHE.get("statewide_ambulances", [])
+)
 
 @app.route("/")
 def index():
@@ -308,6 +327,72 @@ def dispatch_incident():
     return jsonify({
         "status": "success",
         "dispatch": dispatch_res
+    })
+
+@app.route("/api/place_ambulance_nearer", methods=["POST"])
+def place_ambulance_nearer():
+    """
+    Positions a Rapid Response 108 Ambulance right at or near
+    a village or danger spot to immediately reduce response time and save the Golden Hour.
+    """
+    data = request.get_json() or {}
+    lat = float(data.get("lat", 16.312))
+    lng = float(data.get("lng", 80.451))
+    location_name = data.get("location_name", "Village Danger Spot")
+    district = data.get("district", "General")
+    mandal = data.get("mandal", "Local")
+
+    new_stn = {
+        "station_id": f"RAPID-108-{int(time.time()*1000)%100000}",
+        "name": f"{location_name} Rapid 108 Post",
+        "district": district,
+        "mandal": mandal,
+        "lat": lat,
+        "lng": lng,
+        "allocated_vehicle_type": "Advanced Life Support (ALS) - Rapid Post",
+        "paramedic_crew": 3,
+        "is_custom_nearer": True
+    }
+
+    dispatch_engine.add_custom_station(new_stn)
+    if "active_fleet" in DATA_CACHE:
+        DATA_CACHE["active_fleet"].insert(0, new_stn)
+
+    # Immediately re-run dispatch for this spot
+    dispatch_res = dispatch_engine.dispatch_nearest_ambulance(lat, lng, severity="Critical")
+
+    return jsonify({
+        "status": "success",
+        "station": new_stn,
+        "dispatch": dispatch_res,
+        "message": f"Rapid 108 Ambulance stationed at {location_name}!"
+    })
+
+@app.route("/api/village_danger_spots", methods=["GET"])
+def get_village_danger_spots():
+    """Returns danger spots for villages filtered by district."""
+    district = request.args.get("district", "ALL")
+    limit = int(request.args.get("limit", 400))
+    villages = DATA_CACHE.get("villages", [])
+    if district and district != "ALL":
+        villages = [v for v in villages if v["district"].lower() == district.lower()]
+
+    danger_spots = []
+    for v in villages[:limit]:
+        if "danger_spot" in v:
+            ds = dict(v["danger_spot"])
+            ds["village_id"] = v.get("village_id")
+            ds["village_name"] = v.get("village_name")
+            ds["mandal"] = v.get("mandal")
+            ds["district"] = v.get("district")
+            ds["population"] = v.get("population")
+            danger_spots.append(ds)
+
+    return jsonify({
+        "status": "success",
+        "total": len(danger_spots),
+        "district": district,
+        "danger_spots": danger_spots
     })
 
 @app.route("/api/export_report", methods=["GET"])
