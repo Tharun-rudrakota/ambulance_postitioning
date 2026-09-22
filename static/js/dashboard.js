@@ -45,7 +45,39 @@ function matchDistrict(d1, d2) {
   };
   const k1 = aliases[d1.trim().toLowerCase()] || d1.trim().toLowerCase();
   const k2 = aliases[d2.trim().toLowerCase()] || d2.trim().toLowerCase();
-  return k1 === k2;
+  return k1 == k2;
+}
+
+const AP_COASTLINE_REF = [
+  [13.40, 80.10], [13.60, 80.11], [13.80, 80.12], [14.00, 80.08], [14.15, 80.07],
+  [14.28, 80.09], [14.45, 80.13], [14.65, 80.09], [14.90, 80.00], [15.10, 80.01],
+  [15.25, 80.03], [15.45, 80.07], [15.65, 80.25], [15.80, 80.45], [15.92, 80.60],
+  [16.00, 80.85], [16.18, 81.18], [16.32, 81.65], [16.50, 81.88], [16.70, 82.08],
+  [16.95, 82.20], [17.15, 82.30], [17.35, 82.54], [17.55, 82.94], [17.70, 83.27],
+  [17.89, 83.39], [18.12, 83.76], [18.33, 84.05], [18.55, 84.28], [18.88, 84.52],
+  [19.20, 84.68]
+];
+
+function getMaxCoastlineLng(lat) {
+  const pts = AP_COASTLINE_REF;
+  if (lat <= pts[0][0]) return pts[0][1];
+  if (lat >= pts[pts.length - 1][0]) return pts[pts.length - 1][1];
+  for (let i = 0; i < pts.length - 1; i++) {
+    if (pts[i][0] <= lat && lat <= pts[i + 1][0]) {
+      const t = (lat - pts[i][0]) / (pts[i + 1][0] - pts[i][0]);
+      return pts[i][1] + t * (pts[i + 1][1] - pts[i][1]);
+    }
+  }
+  return 84.0;
+}
+
+function clampCoastline(lat, lng, buffer = 0.018) {
+  const maxLng = getMaxCoastlineLng(lat) - buffer;
+  if (lng > maxLng) {
+    const over = lng - maxLng;
+    return Math.round((maxLng - Math.min(0.04, over * 0.4) - 0.005) * 100000) / 100000;
+  }
+  return lng;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -360,6 +392,7 @@ function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) 
   stations.forEach((stn, idx) => {
     const isALS = stn.allocated_vehicle_type && stn.allocated_vehicle_type.includes("ALS");
     const markerColor = isALS ? "#10b981" : "#06b6d4";
+    const safeLng = clampCoastline(stn.lat, stn.lng);
 
     const customIcon = L.divIcon({
       className: "custom-div-icon",
@@ -372,7 +405,7 @@ function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) 
       iconAnchor: [14, 14]
     });
 
-    const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
+    const marker = L.marker([stn.lat, safeLng], { icon: customIcon });
     marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge">${stn.allocated_vehicle_type || 'ALS'}</span>`, {
       permanent: true,
       direction: "bottom",
@@ -394,7 +427,7 @@ function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) 
     layers.optAmbulances.addLayer(marker);
 
     // Coverage Circle Buffer
-    const circle = L.circle([stn.lat, stn.lng], {
+    const circle = L.circle([stn.lat, safeLng], {
       radius: radiusMeters,
       color: markerColor,
       weight: 1.5,
@@ -407,6 +440,7 @@ function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) 
 
   // 2. Render Ready Mandal Stations (guarantees every mandal including Duttalur has a stationed ready ambulance)
   readyStations.forEach(stn => {
+    const safeLng = clampCoastline(stn.lat, stn.lng);
     const customIcon = L.divIcon({
       className: "custom-div-icon",
       html: `
@@ -418,7 +452,7 @@ function renderOptimalAmbulances(stations, readyStations = [], radiusKm = 12.0) 
       iconAnchor: [13, 13]
     });
 
-    const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
+    const marker = L.marker([stn.lat, safeLng], { icon: customIcon });
     marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge ready-badge">Ready 108 Post</span>`, {
       permanent: true,
       direction: "bottom",
@@ -445,6 +479,7 @@ function renderBlackspots(blackspots) {
   layers.blackspots.clearLayers();
 
   blackspots.forEach((bs) => {
+    const safeLng = clampCoastline(bs.lat, bs.lng);
     const customIcon = L.divIcon({
       className: "custom-div-icon",
       html: `
@@ -456,7 +491,7 @@ function renderBlackspots(blackspots) {
       iconAnchor: [10, 10]
     });
 
-    const marker = L.marker([bs.lat, bs.lng], { icon: customIcon });
+    const marker = L.marker([bs.lat, safeLng], { icon: customIcon });
     marker.bindTooltip(`<b>⚠️ ${bs.location_name}</b> <small style="color:#fca5a5;">(${bs.corridor})</small>`, {
       direction: "top",
       className: "bold-map-label blackspot-label",
@@ -472,7 +507,7 @@ function renderBlackspots(blackspots) {
         <strong>Severity Index:</strong> ${bs.severity_index}<br>
         <strong>Primary Cause:</strong> ${bs.accident_causes}<br>
         <strong>High Risk Window:</strong> ${bs.peak_time_window}<br>
-        <button onclick="handleAccidentReport(${bs.lat}, ${bs.lng}, '${bs.location_name.replace(/'/g, "\\'")}')" style="margin-top:6px; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">
+        <button onclick="handleAccidentReport(${bs.lat}, ${safeLng}, '${bs.location_name.replace(/'/g, "\\'")}')" style="margin-top:6px; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">
           <i class="fa-solid fa-truck-medical"></i> Test Dispatch Here
         </button>
       </div>
@@ -485,6 +520,7 @@ function renderTraumaCenters(traumaCenters) {
   layers.traumaCenters.clearLayers();
 
   traumaCenters.forEach(tc => {
+    const safeLng = clampCoastline(tc.lat, tc.lng);
     const icon = L.divIcon({
       className: "custom-div-icon",
       html: `
@@ -496,7 +532,7 @@ function renderTraumaCenters(traumaCenters) {
       iconAnchor: [12, 12]
     });
 
-    const marker = L.marker([tc.lat, tc.lng], { icon: icon });
+    const marker = L.marker([tc.lat, safeLng], { icon: icon });
     marker.bindTooltip(`<b>🏥 ${tc.name}</b>`, {
       permanent: true,
       direction: "bottom",
@@ -518,6 +554,7 @@ function renderBaselineAmbulances(ambulances) {
   layers.baseline.clearLayers();
 
   ambulances.forEach(amb => {
+    const safeLng = clampCoastline(amb.lat, amb.lng);
     const icon = L.divIcon({
       className: "custom-div-icon",
       html: `
@@ -529,7 +566,7 @@ function renderBaselineAmbulances(ambulances) {
       iconAnchor: [9, 9]
     });
 
-    const marker = L.marker([amb.lat, amb.lng], { icon: icon });
+    const marker = L.marker([amb.lat, safeLng], { icon: icon });
     marker.bindTooltip(`<b>${amb.station_name}</b>`, {
       direction: "top",
       className: "bold-map-label",
@@ -550,7 +587,8 @@ function renderMandals(mandals) {
   layers.mandals.clearLayers();
 
   mandals.forEach(m => {
-    const circle = L.circleMarker([m.lat, m.lng], {
+    const safeLng = clampCoastline(m.lat, m.lng);
+    const circle = L.circleMarker([m.lat, safeLng], {
       radius: 3.5,
       color: "#3b82f6",
       fillColor: "#3b82f6",
@@ -583,7 +621,8 @@ function renderVillages(villages) {
   villages.forEach(v => {
     const isPhc = v.has_phc;
     const color = isPhc ? "#10b981" : "#eab308";
-    const circle = L.circleMarker([v.lat, v.lng], {
+    const safeLng = clampCoastline(v.lat, v.lng);
+    const circle = L.circleMarker([v.lat, safeLng], {
       radius: isPhc ? 3.5 : 2.5,
       color: color,
       fillColor: color,
@@ -615,7 +654,7 @@ function renderVillages(villages) {
           <span style="color:#166534; font-weight:600;">${v.mandal} Mandal HQ Station</span> (< 5 min response)
         </div>
         <div style="margin-top:8px;">
-          <button onclick="handleAccidentReport(${v.lat}, ${v.lng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
+          <button onclick="handleAccidentReport(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch Here
           </button>
         </div>
@@ -631,9 +670,11 @@ function renderVillageDangerSpots(dangerSpots) {
   dangerSpots.forEach(ds => {
     const isCritical = ds.severity === "Critical Risk";
     const zoneColor = isCritical ? "#dc2626" : "#ea580c";
+    const safeLat = ds.lat;
+    const safeLng = clampCoastline(ds.lat, ds.lng);
 
     // 1. Visible Danger Zone Hazard Perimeter Circle (650m radius)
-    const zoneCircle = L.circle([ds.lat, ds.lng], {
+    const zoneCircle = L.circle([safeLat, safeLng], {
       radius: 650,
       color: zoneColor,
       weight: 1.8,
@@ -655,7 +696,7 @@ function renderVillageDangerSpots(dangerSpots) {
       iconAnchor: [11, 11]
     });
 
-    const marker = L.marker([ds.lat, ds.lng], { icon: icon });
+    const marker = L.marker([safeLat, safeLng], { icon: icon });
     marker.bindTooltip(`<b>⚠️ ${ds.village_name} Danger Zone</b><br><small style="color:#fca5a5;">${ds.hazard_type} (${ds.severity})</small>`, {
       direction: "top",
       className: "bold-map-label danger-label",
@@ -676,7 +717,7 @@ function renderVillageDangerSpots(dangerSpots) {
           <span style="color:#166534; font-weight:600;">${ds.mandal} 108 Ready Emergency Station</span> (< 5 min response)
         </div>
         <div style="margin-top:8px;">
-          <button onclick="handleAccidentReport(${ds.lat}, ${ds.lng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone (${ds.mandal} Mdl)', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
+          <button onclick="handleAccidentReport(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone (${ds.mandal} Mdl)', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch to Danger Zone
           </button>
         </div>

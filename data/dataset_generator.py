@@ -431,6 +431,59 @@ AP_VILLAGE_SUFFIXES = [
     "konda", "peta", "varam", "dinne", "kotta", "agraharam", "khandriga", "metla", "guntla"
 ]
 
+COASTLINE_REFERENCE_POINTS = [
+    (13.40, 80.10), (13.60, 80.11), (13.80, 80.12), (14.00, 80.08), (14.15, 80.07),
+    (14.28, 80.09), (14.45, 80.13), (14.65, 80.09), (14.90, 80.00), (15.10, 80.01),
+    (15.25, 80.03), (15.45, 80.07), (15.65, 80.25), (15.80, 80.45), (15.92, 80.60),
+    (16.00, 80.85), (16.18, 81.18), (16.32, 81.65), (16.50, 81.88), (16.70, 82.08),
+    (16.95, 82.20), (17.15, 82.30), (17.35, 82.54), (17.55, 82.94), (17.70, 83.27),
+    (17.89, 83.39), (18.12, 83.76), (18.33, 84.05), (18.55, 84.28), (18.88, 84.52),
+    (19.20, 84.68)
+]
+
+def get_max_land_longitude(lat: float) -> float:
+    """Returns the maximum longitude for Andhra Pradesh landmass at a given latitude."""
+    pts = COASTLINE_REFERENCE_POINTS
+    if lat <= pts[0][0]: return pts[0][1]
+    if lat >= pts[-1][0]: return pts[-1][1]
+    for i in range(len(pts) - 1):
+        if pts[i][0] <= lat <= pts[i+1][0]:
+            t = (lat - pts[i][0]) / (pts[i+1][0] - pts[i][0])
+            return pts[i][1] + t * (pts[i+1][1] - pts[i][1])
+    return 84.0
+
+def clamp_to_ap_land(lat: float, lng: float, buffer_deg: float = 0.018) -> float:
+    """Clamps a longitude so that it never lies in the Bay of Bengal sea."""
+    max_lng = get_max_land_longitude(lat) - buffer_deg
+    if lng > max_lng:
+        over = lng - max_lng
+        return round(max_lng - min(0.04, over * 0.4) - 0.005, 5)
+    return round(lng, 5)
+
+REAL_MANDAL_COORDINATES = {
+    "SPS Nellore": {
+        'Nellore Urban': (14.4426, 79.9865), 'Nellore Rural': (14.4310, 79.9450),
+        'Kovur': (14.4950, 79.9850), 'Buchireddipalem': (14.5350, 79.8800),
+        'Indukurpet': (14.4850, 80.1150), 'Kodavalur': (14.5450, 79.9650),
+        'Vidavalur': (14.5750, 80.0550), 'Allur': (14.6850, 80.0500),
+        'Dagadarthi': (14.6700, 79.9200), 'Bogole': (14.7800, 79.9800),
+        'Jaladanki': (14.8840, 79.9100), 'Kavali': (14.9130, 79.9930),
+        'Kaligiri': (14.8210, 79.7210), 'Vinjamur': (14.8450, 79.5780),
+        'Duttalur': (14.8500, 79.4100), 'Udayagiri': (14.8720, 79.3170),
+        'Varikuntapadu': (14.9920, 79.4320), 'Sitaramapuram': (15.0120, 79.1350),
+        'Atmakur Nellore': (14.6150, 79.6250), 'Ananthasagaram': (14.5800, 79.4500),
+        'Kaluvoya': (14.5200, 79.5200), 'Chejerla': (14.4800, 79.5600),
+        'Podalakur': (14.3750, 79.7350), 'Rapur': (14.2000, 79.5350),
+        'Sydapuram': (14.1700, 79.7150), 'Manubolu': (14.2450, 79.8900),
+        'Muthukur': (14.2850, 80.1200), 'Thotapalligudur': (14.3600, 80.0800),
+        'Venkatachalam': (14.3150, 79.9350), 'Gudur Nellore': (14.1450, 79.8500),
+        'Chillakur': (14.1200, 80.0100), 'Kota': (14.0300, 80.0200),
+        'Vakadu': (13.9800, 80.0800), 'Chittamur': (13.9500, 79.9800),
+        'Naidupeta': (13.9050, 79.9050), 'Pellakur': (13.8200, 79.8100),
+        'Dakkili': (14.0500, 79.6200), 'Balayapalli': (14.0200, 79.7100)
+    }
+}
+
 def generate_complete_dataset(output_dir="data"):
     """
     Generates structured datasets for:
@@ -455,16 +508,16 @@ def generate_complete_dataset(output_dir="data"):
     total_mandal_count = 0
 
     for d_name, d_info in AP_DISTRICTS_DATA.items():
-        d_lat = d_info["lat"]
-        d_lng = d_info["lng"]
+        district_lat = d_info["lat"]
+        district_lng = d_info["lng"]
         mandals = d_info["mandals"]
         total_mandal_count += len(mandals)
 
         district_record = {
             "district_name": d_name,
             "headquarters": d_info["hq"],
-            "lat": d_lat,
-            "lng": d_lng,
+            "lat": district_lat,
+            "lng": district_lng,
             "mandal_count": len(mandals),
             "highways": d_info["highways"]
         }
@@ -473,15 +526,20 @@ def generate_complete_dataset(output_dir="data"):
         # Generate coordinates for each mandal around the district center
         num_m = len(mandals)
         for i, m_name in enumerate(mandals):
-            # Angular dispersion with realistic cluster spread (10 - 45 km from HQ)
-            angle = (2 * math.pi / max(num_m, 1)) * i + random.uniform(-0.15, 0.15)
-            # Distance from HQ in degrees (~ 0.01 deg ~= 1.11 km)
-            dist_km = random.uniform(4.0, 38.0) if i > 0 else 0.0
-            deg_lat = (dist_km / 111.0) * math.cos(angle)
-            deg_lng = (dist_km / (111.0 * math.cos(math.radians(d_lat)))) * math.sin(angle)
+            if d_name in REAL_MANDAL_COORDINATES and m_name in REAL_MANDAL_COORDINATES[d_name]:
+                raw_lat, raw_lng = REAL_MANDAL_COORDINATES[d_name][m_name]
+                m_lat = round(raw_lat, 5)
+                m_lng = clamp_to_ap_land(m_lat, raw_lng)
+            else:
+                # Angular dispersion with realistic cluster spread (10 - 45 km from HQ)
+                angle = (2 * math.pi / max(num_m, 1)) * i + random.uniform(-0.15, 0.15)
+                # Distance from HQ in degrees (~ 0.01 deg ~= 1.11 km)
+                dist_km = random.uniform(4.0, 38.0) if i > 0 else 0.0
+                deg_lat = (dist_km / 111.0) * math.cos(angle)
+                deg_lng = (dist_km / (111.0 * math.cos(math.radians(district_lat)))) * math.sin(angle)
 
-            m_lat = round(d_lat + deg_lat, 5)
-            m_lng = round(d_lng + deg_lng, 5)
+                m_lat = round(district_lat + deg_lat, 5)
+                m_lng = clamp_to_ap_land(m_lat, round(district_lng + deg_lng, 5))
 
             # Assign population (Urban centers higher, rural lower)
             if i == 0:
@@ -520,31 +578,23 @@ def generate_complete_dataset(output_dir="data"):
                 v_suffix = AP_VILLAGE_SUFFIXES[(v_idx * 5 + i * 2) % len(AP_VILLAGE_SUFFIXES)]
                 if v_idx == 0:
                     v_name = f"{m_name} Gramam"
+                    v_dist_km = random.uniform(0.4, 1.4)
                 elif v_idx == 1:
                     v_name = f"Kotha {m_name}"
+                    v_dist_km = random.uniform(1.2, 2.8)
                 else:
                     v_name = f"{v_prefix}{v_suffix}"
+                    v_dist_km = random.uniform(1.8, 5.5)
 
                 v_angle = (2 * math.pi / num_v) * v_idx + random.uniform(-0.1, 0.1)
-                v_dist_km = random.uniform(1.8, 11.5)
                 v_deg_lat = (v_dist_km / 111.0) * math.cos(v_angle)
                 v_deg_lng = (v_dist_km / (111.0 * math.cos(math.radians(m_lat)))) * math.sin(v_angle)
 
                 v_lat = round(m_lat + v_deg_lat, 5)
-                v_lng = round(m_lng + v_deg_lng, 5)
+                v_lng = clamp_to_ap_land(v_lat, round(m_lng + v_deg_lng, 5))
                 v_pop = random.randint(1200, 8500)
                 has_phc = True if v_idx < 2 else False
 
-                village_obj = {
-                    "village_id": f"AP-VIL-{village_id_counter:05d}",
-                    "village_name": v_name,
-                    "mandal": m_name,
-                    "district": d_name,
-                    "lat": v_lat,
-                    "lng": v_lng,
-                    "population": v_pop,
-                    "gram_panchayat": f"{v_name} Grama Panchayat",
-                    "has_phc": has_phc,
                 v_risk = round(min(9.5, max(1.5, risk_score + random.uniform(-1.2, 1.2))), 1)
                 hazards = [
                     ('Highway Junction Blackspot', 'High-speed intersection with national/state highway'),
@@ -557,9 +607,12 @@ def generate_complete_dataset(output_dir="data"):
                 ]
                 ht, cause = hazards[v_idx % len(hazards)]
                 d_offset_m = random.uniform(220, 520)
-                d_lat = (d_offset_m / 111000.0) * math.cos(v_angle)
-                d_lng = (d_offset_m / (111000.0 * math.cos(math.radians(v_lat)))) * math.sin(v_angle)
+                spot_offset_lat = (d_offset_m / 111000.0) * math.cos(v_angle)
+                spot_offset_lng = (d_offset_m / (111000.0 * math.cos(math.radians(v_lat)))) * math.sin(v_angle)
                 d_acc = int(round(v_risk * random.uniform(1.3, 2.2)))
+
+                d_spot_lat = round(v_lat + spot_offset_lat, 5)
+                d_spot_lng = clamp_to_ap_land(d_spot_lat, round(v_lng + spot_offset_lng, 5))
 
                 village_obj = {
                     "village_id": f"AP-VIL-{village_id_counter:05d}",
@@ -576,11 +629,11 @@ def generate_complete_dataset(output_dir="data"):
                     "danger_spot": {
                         "name": f"{v_name} {ht}",
                         "hazard_type": ht,
-                        "severity": "Critical Risk" if v_risk >= 7.0 else "High Risk",
-                        "lat": round(v_lat + d_lat, 5),
-                        "lng": round(v_lng + d_lng, 5),
+                        "severity": "Critical Risk" if v_risk >= 7.5 else "High Risk",
+                        "lat": d_spot_lat,
+                        "lng": d_spot_lng,
                         "annual_accidents": d_acc,
-                        "fatalities": max(1, int(round(d_acc * random.uniform(0.22, 0.38)))),
+                        "fatalities": max(1, int(round(d_acc * 0.3))),
                         "causes": cause
                     }
                 }
@@ -628,7 +681,7 @@ def generate_complete_dataset(output_dir="data"):
                 offset_lat = random.uniform(-0.03, 0.03)
                 offset_lng = random.uniform(-0.03, 0.03)
                 b_lat = round(node["lat"] + offset_lat, 5)
-                b_lng = round(node["lng"] + offset_lng, 5)
+                b_lng = clamp_to_ap_land(b_lat, round(node["lng"] + offset_lng, 5))
 
                 fatalities = random.randint(3, 16)
                 injuries = random.randint(12, 48)
@@ -662,13 +715,15 @@ def generate_complete_dataset(output_dir="data"):
             fatalities = random.randint(2, 9)
             injuries = random.randint(8, 25)
             severity = round(fatalities * 3.5 + injuries * 1.0, 1)
+            b_lat = round(m["lat"] + offset_lat, 5)
+            b_lng = clamp_to_ap_land(b_lat, round(m["lng"] + offset_lng, 5))
             all_blackspots.append({
                 "blackspot_id": f"AP-BS-{blackspot_id_counter:04d}",
                 "corridor": f"{m['district']} State / District Road",
                 "location_name": f"{m['mandal_name']} Main Road Turn",
                 "district": m["district"],
-                "lat": round(m["lat"] + offset_lat, 5),
-                "lng": round(m["lng"] + offset_lng, 5),
+                "lat": b_lat,
+                "lng": b_lng,
                 "fatalities_annual": fatalities,
                 "injuries_annual": injuries,
                 "severity_index": severity,
