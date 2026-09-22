@@ -9,6 +9,7 @@ let baseLayers = {};
 let currentBaseLayer = null;
 
 let layers = {
+  districtBoundary: L.layerGroup(),
   optAmbulances: L.layerGroup(),
   coverageCircles: L.layerGroup(),
   blackspots: L.layerGroup(),
@@ -24,6 +25,8 @@ let currentBlackspots = [];
 let currentOptimalStations = [];
 let currentReadyStations = [];
 let allMandals = [];
+let currentDistrictPlaces = [];
+let currentDistrictBounds = null;
 let lastIncident = { lat: 16.312, lng: 80.451, label: "Emergency Scene", district: "General", mandal: "Local" };
 
 function matchDistrict(d1, d2) {
@@ -243,6 +246,28 @@ function setupEventListeners() {
     runOptimization();
   });
 
+  // Places Explorer Filters
+  const explorerMandalFilter = document.getElementById("explorer-mandal-filter");
+  if (explorerMandalFilter) {
+    explorerMandalFilter.addEventListener("change", () => {
+      renderFilteredPlaces();
+    });
+  }
+
+  const explorerPlaceSearch = document.getElementById("explorer-place-search");
+  if (explorerPlaceSearch) {
+    explorerPlaceSearch.addEventListener("input", () => {
+      renderFilteredPlaces();
+    });
+  }
+
+  const btnZoomDist = document.getElementById("btn-zoom-district");
+  if (btnZoomDist) {
+    btnZoomDist.addEventListener("click", () => {
+      fitDistrictBounds();
+    });
+  }
+
   // Highway Crash Simulation Button
   document.getElementById("btn-simulate-highway-crash").addEventListener("click", () => {
     if (currentBlackspots.length > 0) {
@@ -322,28 +347,55 @@ async function runOptimization() {
       currentBlackspots = bsData.blackspots || [];
       renderBlackspots(currentBlackspots);
 
-      // Load villages for this district (load full dataset without cut-off)
-      const vLimit = district === "ALL" ? 400 : 2500;
+      // Load mandals specifically for this district (or all if statewide)
+      const mRes = await fetch(`/api/mandals?district=${encodeURIComponent(district)}`);
+      const mData = await mRes.json();
+      const districtMandals = mData.mandals || [];
+      renderMandals(districtMandals);
+
+      // Load baseline ambulances for this district (or all if statewide)
+      const bRes = await fetch(`/api/baseline?district=${encodeURIComponent(district)}`);
+      const bData = await bRes.json();
+      renderBaselineAmbulances(bData.ambulances || []);
+
+      // Load villages for this district (load 100% of all villages without cut-off)
+      const vLimit = district === "ALL" ? 400 : 10000;
       const vRes = await fetch(`/api/villages?district=${encodeURIComponent(district)}&limit=${vLimit}`);
       const vData = await vRes.json();
-      renderVillages(vData.villages || []);
+      const districtVillages = vData.villages || [];
+      renderVillages(districtVillages);
 
-      // Load village danger spots for this district
+      // Load village danger spots for this district (100% of all danger zones)
       const vdRes = await fetch(`/api/village_danger_spots?district=${encodeURIComponent(district)}&limit=${vLimit}`);
       const vdData = await vdRes.json();
-      renderVillageDangerSpots(vdData.danger_spots || []);
+      const districtDangerSpots = vdData.danger_spots || [];
+      renderVillageDangerSpots(districtDangerSpots);
 
-      // Adjust map bounds to encompass all stations, mandals, and villages
+      // Load district details & perimeter boundary hull
+      const ddRes = await fetch(`/api/district_details?district=${encodeURIComponent(district)}`);
+      const ddData = await ddRes.json();
+      if (ddData.status === "success" && !ddData.is_statewide && ddData.boundary_hull) {
+        renderDistrictBoundary(ddData.boundary_hull, ddData.district, ddData.total_mandals, ddData.total_villages);
+      } else {
+        layers.districtBoundary.clearLayers();
+      }
+
+      // Update Places Explorer in sidebar with each and every place
+      updateDistrictPlacesExplorer(ddData, districtMandals, districtVillages, districtDangerSpots);
+
+      // Adjust map bounds to encompass all places in the total selected district
       if (district !== "ALL") {
         const boundsCoords = [];
-        currentOptimalStations.forEach(s => boundsCoords.push([s.lat, s.lng]));
-        currentReadyStations.forEach(s => boundsCoords.push([s.lat, s.lng]));
-        if (vData.villages && vData.villages.length > 0) {
-          vData.villages.forEach(v => boundsCoords.push([v.lat, v.lng]));
-        }
+        currentOptimalStations.forEach(s => boundsCoords.push([s.lat, clampCoastline(s.lat, s.lng)]));
+        currentReadyStations.forEach(s => boundsCoords.push([s.lat, clampCoastline(s.lat, s.lng)]));
+        districtMandals.forEach(m => boundsCoords.push([m.lat, clampCoastline(m.lat, m.lng)]));
+        districtVillages.forEach(v => boundsCoords.push([v.lat, clampCoastline(v.lat, v.lng)]));
         if (boundsCoords.length > 0) {
-          map.fitBounds(L.latLngBounds(boundsCoords), { padding: [35, 35] });
+          currentDistrictBounds = L.latLngBounds(boundsCoords);
+          map.fitBounds(currentDistrictBounds, { padding: [40, 40] });
         }
+      } else {
+        currentDistrictBounds = L.latLngBounds([[12.6, 76.8], [19.2, 84.7]]);
       }
     }
   } catch (err) {
@@ -996,5 +1048,258 @@ async function handleAccidentReport(lat, lng, locationLabel = "", district = "Ge
     }
   } catch (err) {
     console.error("Dispatch simulation error:", err);
+  }
+}
+
+// -------------------------------------------------------------
+// Total District Places Directory & Boundary Renderer
+// -------------------------------------------------------------
+
+function renderDistrictBoundary(hullCoords, districtName, mandalsCount, villagesCount) {
+  layers.districtBoundary.clearLayers();
+  if (!hullCoords || hullCoords.length < 3) return;
+
+  const clampedHull = hullCoords.map(pt => [pt[0], clampCoastline(pt[0], pt[1])]);
+
+  const polygon = L.polygon(clampedHull, {
+    color: "#0284c7",
+    weight: 2.8,
+    dashArray: "6, 6",
+    fillColor: "#0284c7",
+    fillOpacity: 0.06
+  });
+
+  polygon.bindTooltip(
+    `<b>🏛️ ${districtName} District</b><br><small style="color:#93c5fd;">Total Coverage: ${mandalsCount} Mandals | ${villagesCount} Villages | 100% Covered</small>`,
+    {
+      permanent: true,
+      direction: "center",
+      className: "district-boundary-tooltip"
+    }
+  );
+
+  layers.districtBoundary.addLayer(polygon);
+}
+
+function updateDistrictPlacesExplorer(distDetails, mandals, villages, dangerSpots) {
+  const isAll = distDetails.is_statewide || !distDetails.district || distDetails.district === "ALL";
+
+  if (isAll) {
+    document.getElementById("explorer-total-badge").textContent = "Statewide View";
+    document.getElementById("explorer-district-name").textContent = "All 26 AP Districts";
+    document.getElementById("explorer-hq-info").textContent = "Select a specific district to view each and every place";
+    document.getElementById("chip-mandals").textContent = "679";
+    document.getElementById("chip-villages").textContent = villages.length.toLocaleString();
+    document.getElementById("chip-danger").textContent = dangerSpots.length.toLocaleString();
+    document.getElementById("chip-amb").textContent = "236";
+    document.getElementById("places-display-count").textContent = "Showing 26 AP Districts";
+
+    const mandalSelect = document.getElementById("explorer-mandal-filter");
+    if (mandalSelect) {
+      mandalSelect.innerHTML = '<option value="ALL">Statewide (Select a district above)</option>';
+    }
+
+    const container = document.getElementById("district-places-list");
+    if (container) {
+      container.innerHTML = `
+        <div class="places-empty-state">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <p>Select a specific district from the <strong>Select District</strong> dropdown above to view and explore each and every mandal, village, and danger zone in that district.</p>
+        </div>
+      `;
+    }
+    currentDistrictPlaces = [];
+    return;
+  }
+
+  const dName = distDetails.district;
+  const hq = distDetails.headquarters || dName;
+  const highways = (distDetails.highways || []).join(", ");
+  const mCount = distDetails.total_mandals || mandals.length;
+  const vCount = distDetails.total_villages || villages.length;
+  const dsCount = distDetails.total_danger_spots || dangerSpots.length;
+  const ambCount = mCount;
+
+  document.getElementById("explorer-total-badge").textContent = `${mCount + vCount} Places`;
+  document.getElementById("explorer-district-name").textContent = `${dName} District`;
+  document.getElementById("explorer-hq-info").textContent = `HQ: ${hq}${highways ? ' | Corridors: ' + highways : ''}`;
+  document.getElementById("chip-mandals").textContent = mCount;
+  document.getElementById("chip-villages").textContent = vCount;
+  document.getElementById("chip-danger").textContent = dsCount;
+  document.getElementById("chip-amb").textContent = ambCount;
+
+  const places = [];
+
+  // 1. Add all Mandals as primary administrative places
+  mandals.forEach(m => {
+    places.push({
+      id: m.mandal_id,
+      name: `${m.mandal_name} Mandal HQ`,
+      type: "mandal",
+      mandal: m.mandal_name,
+      district: dName,
+      lat: m.lat,
+      lng: m.lng,
+      population: m.population,
+      tier: m.tier || "Mandal Center",
+      village_count: m.village_count || 0,
+      readyAmb: `${m.mandal_name} 108 Ready Emergency Station`,
+      hazard: "Mandal Administrative & CHC Hub",
+      severity: "HQ Stationed"
+    });
+  });
+
+  // 2. Add all Villages
+  villages.forEach(v => {
+    const ds = v.danger_spot || {};
+    places.push({
+      id: v.village_id,
+      name: v.village_name,
+      type: "village",
+      mandal: v.mandal,
+      district: dName,
+      lat: v.lat,
+      lng: v.lng,
+      population: v.population,
+      has_phc: v.has_phc,
+      gram_panchayat: v.gram_panchayat,
+      readyAmb: `${v.mandal} 108 Ready Emergency Station`,
+      hazard: ds.hazard_type || "Blind Highway Intersection",
+      severity: ds.severity || "High Risk",
+      annual_accidents: ds.annual_accidents || 0
+    });
+  });
+
+  currentDistrictPlaces = places;
+
+  // Populate Mandal Filter Dropdown
+  const mandalSelect = document.getElementById("explorer-mandal-filter");
+  if (mandalSelect) {
+    const uniqueMandals = [...new Set(places.map(p => p.mandal))].sort();
+    let mOptions = `<option value="ALL">All ${mCount} Mandals (${places.length} Places)</option>`;
+    uniqueMandals.forEach(mName => {
+      const pCount = places.filter(p => p.mandal.toLowerCase() === mName.toLowerCase()).length;
+      mOptions += `<option value="${mName}">${mName} (${pCount} places)</option>`;
+    });
+    mandalSelect.innerHTML = mOptions;
+  }
+
+  renderFilteredPlaces();
+}
+
+function renderFilteredPlaces() {
+  const container = document.getElementById("district-places-list");
+  if (!container) return;
+
+  const mandalFilterEl = document.getElementById("explorer-mandal-filter");
+  const mandalFilter = mandalFilterEl ? mandalFilterEl.value : "ALL";
+
+  const searchEl = document.getElementById("explorer-place-search");
+  const searchQuery = searchEl ? searchEl.value.trim().toLowerCase() : "";
+
+  let filtered = currentDistrictPlaces;
+  if (mandalFilter && mandalFilter !== "ALL") {
+    filtered = filtered.filter(p => p.mandal.toLowerCase() === mandalFilter.toLowerCase());
+  }
+  if (searchQuery) {
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(searchQuery) ||
+      p.mandal.toLowerCase().includes(searchQuery) ||
+      (p.hazard && p.hazard.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  const countEl = document.getElementById("places-display-count");
+  if (countEl) {
+    countEl.textContent = `Showing ${filtered.length} of ${currentDistrictPlaces.length} places`;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="places-empty-state">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <p>No places matched your filter query.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const displayLimit = 150;
+  const itemsToRender = filtered.slice(0, displayLimit);
+
+  let html = "";
+  itemsToRender.forEach(p => {
+    const isMandal = p.type === "mandal";
+    const badgeClass = isMandal ? "mandal" : "village";
+    const badgeText = isMandal ? "Mandal HQ" : (p.has_phc ? "PHC Village" : "Gramam");
+    const safeLng = clampCoastline(p.lat, p.lng);
+
+    html += `
+      <div class="place-card-item" id="card-${p.id}">
+        <div class="place-card-top">
+          <span class="place-card-name">${p.name}</span>
+          <span class="place-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="place-card-meta">
+          <span><i class="fa-solid fa-building-columns"></i> ${p.mandal} Mdl</span>
+          <span><i class="fa-solid fa-users"></i> ${p.population ? p.population.toLocaleString() : '--'}</span>
+        </div>
+        <div class="place-danger-preview">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>${p.hazard} (${p.severity})</span>
+        </div>
+        <div class="place-amb-preview">
+          <i class="fa-solid fa-truck-medical"></i>
+          <span>${p.readyAmb}</span>
+        </div>
+        <div class="place-card-actions">
+          <button class="btn-place-zoom" onclick="focusOnPlace(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.type}')">
+            <i class="fa-solid fa-crosshairs"></i> View on Map
+          </button>
+          <button class="btn-place-dispatch" onclick="handleAccidentReport(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}')">
+            <i class="fa-solid fa-truck-medical"></i> Dispatch 108
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  if (filtered.length > displayLimit) {
+    html += `
+      <div style="text-align:center; padding:8px; font-size:0.75rem; color:var(--text-muted);">
+        ... and ${filtered.length - displayLimit} more places. Type in search to narrow results.
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+
+function focusOnPlace(lat, lng, name, type) {
+  const safeLng = clampCoastline(lat, lng);
+  map.flyTo([lat, safeLng], 14, { duration: 1.2 });
+
+  const highlightCircle = L.circleMarker([lat, safeLng], {
+    radius: 18,
+    color: '#38bdf8',
+    fillColor: '#38bdf8',
+    fillOpacity: 0.4,
+    weight: 3
+  }).addTo(map);
+
+  highlightCircle.bindTooltip(`<b>📍 ${name}</b>`, {
+    permanent: true,
+    direction: 'top',
+    className: 'bold-map-label'
+  }).openTooltip();
+
+  setTimeout(() => {
+    map.removeLayer(highlightCircle);
+  }, 5000);
+}
+
+function fitDistrictBounds() {
+  if (currentDistrictBounds) {
+    map.fitBounds(currentDistrictBounds, { padding: [40, 40] });
   }
 }

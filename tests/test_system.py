@@ -276,5 +276,35 @@ class TestAPAmbulanceOptimizer(unittest.TestCase):
         self.assertLess(disp_data["dispatch"]["response_metrics"]["estimated_eta_minutes"], 8.0)
         self.assertEqual(disp_data["dispatch"]["response_metrics"]["golden_hour_status"], "GOLDEN_HOUR_MET")
 
+    def test_10_total_district_details_and_boundary(self):
+        """Test Total Selected District details, perimeter boundary hull, and 100% places coverage."""
+        client = app.test_client()
+
+        # 1. Test district details endpoint for SPS Nellore
+        res = client.get("/api/district_details?district=SPS+Nellore")
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["district"], "SPS Nellore")
+        self.assertEqual(data["total_mandals"], 38)
+        self.assertGreaterEqual(data["total_villages"], 600)
+        self.assertGreaterEqual(data["total_danger_spots"], 600)
+        self.assertGreater(len(data["boundary_hull"]), 4, "Expected valid convex hull boundary polygon")
+        self.assertEqual(len(data["mandals"]), 38)
+
+        # 2. Test 100% village coverage without cut-off
+        v_res = client.get("/api/villages?district=SPS+Nellore")
+        self.assertEqual(v_res.status_code, 200)
+        v_data = v_res.get_json()
+        self.assertEqual(v_data["status"], "success")
+        self.assertGreaterEqual(len(v_data["villages"]), 600, "Should return 100% of district villages")
+
+        # 3. Test 100% danger spot coverage without cut-off
+        ds_res = client.get("/api/village_danger_spots?district=SPS+Nellore")
+        self.assertEqual(ds_res.status_code, 200)
+        ds_data = ds_res.get_json()
+        self.assertEqual(ds_data["status"], "success")
+        self.assertGreaterEqual(len(ds_data["danger_spots"]), 600, "Should return 100% of district danger zones")
+
 if __name__ == "__main__":
     unittest.main()

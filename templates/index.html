@@ -113,6 +113,62 @@
         </button>
       </section>
 
+      <!-- Total District Places Directory & Explorer -->
+      <section class="panel places-directory-panel" id="places-directory-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-map-location-dot"></i> District Places Directory</h3>
+          <span class="badge-live" id="explorer-total-badge">All Places</span>
+        </div>
+        
+        <!-- District Quick Meta Bar -->
+        <div class="district-meta-card">
+          <div class="district-meta-title">
+            <div class="dist-icon"><i class="fa-solid fa-landmark"></i></div>
+            <div>
+              <strong id="explorer-district-name">Total Selected District</strong>
+              <div class="district-meta-sub" id="explorer-hq-info">Select a district to explore each and every place</div>
+            </div>
+          </div>
+          <div class="district-stats-chips">
+            <div class="chip" title="Total Mandals in District"><i class="fa-solid fa-building-columns"></i> <strong id="chip-mandals">--</strong> Mandals</div>
+            <div class="chip" title="Total Villages in District"><i class="fa-solid fa-tree-city"></i> <strong id="chip-villages">--</strong> Villages</div>
+            <div class="chip chip-danger" title="Total Danger Zones in District"><i class="fa-solid fa-triangle-exclamation"></i> <strong id="chip-danger">--</strong> Danger Zones</div>
+            <div class="chip chip-success" title="Total Ready 108 Emergency Ambulances"><i class="fa-solid fa-truck-medical"></i> <strong id="chip-amb">--</strong> Ready 108s</div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="places-filter-bar">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label for="explorer-mandal-filter" style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:5px; margin-bottom:4px;">
+              <i class="fa-solid fa-filter"></i> Filter by Mandal:
+            </label>
+            <select id="explorer-mandal-filter" class="form-control form-control-sm">
+              <option value="ALL">All Mandals in District</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <input type="text" id="explorer-place-search" class="form-control form-control-sm" placeholder="🔍 Search any village, mandal, or place in district...">
+          </div>
+        </div>
+
+        <!-- Places List Counter & Action Header -->
+        <div class="places-list-status">
+          <span id="places-display-count" style="font-size:0.75rem; color:var(--text-muted);">Loading places...</span>
+          <button id="btn-zoom-district" class="btn-text-action" title="Fit map view to total district">
+            <i class="fa-solid fa-expand"></i> Fit District
+          </button>
+        </div>
+
+        <!-- Scrollable Places Container -->
+        <div id="district-places-list" class="district-places-list">
+          <div class="places-empty-state">
+            <i class="fa-solid fa-location-dot"></i>
+            <p>Select a district to explore each and every mandal, village, and danger zone.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Comparative Performance Metrics -->
       <section class="panel metrics-panel">
         <div class="panel-header">

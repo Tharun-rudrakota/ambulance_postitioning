@@ -184,12 +184,85 @@ def get_trauma_centers():
         "trauma_centers": MAJOR_TRAUMA_CENTERS
     })
 
+def compute_district_hull(points):
+    """Computes 2D convex hull of coordinates for district boundary polygon."""
+    pts = sorted(set(points))
+    if len(pts) <= 2:
+        return pts
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lower, upper = [], []
+    for p in pts:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], p) <= 0:
+            lower.pop()
+        lower.append(p)
+    for p in reversed(pts):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], p) <= 0:
+            upper.pop()
+        upper.append(p)
+    return lower[:-1] + upper[:-1]
+
+@app.route("/api/district_details", methods=["GET"])
+def get_district_details():
+    """Returns total district summary, mandals, village counts, and perimeter hull."""
+    district = request.args.get("district", "ALL")
+    if not district or district == "ALL":
+        return jsonify({
+            "status": "success",
+            "is_statewide": True,
+            "total_districts": len(DATA_CACHE["districts"]),
+            "total_mandals": len(DATA_CACHE["mandals"]),
+            "total_villages": len(DATA_CACHE["villages"])
+        })
+
+    dist_info = next((d for d in DATA_CACHE["districts"] if match_district(d["district_name"], district)), None)
+    mandals = [m for m in DATA_CACHE["mandals"] if match_district(m["district"], district)]
+    villages = [v for v in DATA_CACHE["villages"] if match_district(v["district"], district)]
+    blackspots = [b for b in DATA_CACHE["blackspots"] if match_district(b["district"], district)]
+    baseline_ambs = [a for a in DATA_CACHE["baseline_ambulances"] if match_district(a["district"], district)]
+
+    coords = [(v["lat"], v["lng"]) for v in villages] + [(m["lat"], m["lng"]) for m in mandals]
+    hull = compute_district_hull(coords)
+
+    mandal_stats = []
+    for m in mandals:
+        m_vils = [v for v in villages if v["mandal"].lower() == m["mandal_name"].lower()]
+        mandal_stats.append({
+            "mandal_id": m["mandal_id"],
+            "mandal_name": m["mandal_name"],
+            "lat": m["lat"],
+            "lng": m["lng"],
+            "population": m.get("population", 0),
+            "tier": m.get("tier", "Rural"),
+            "village_count": len(m_vils),
+            "danger_spots_count": sum(1 for v in m_vils if "danger_spot" in v),
+            "risk_score": m.get("risk_score", 5.0)
+        })
+
+    return jsonify({
+        "status": "success",
+        "is_statewide": False,
+        "district": dist_info["district_name"] if dist_info else district,
+        "headquarters": dist_info.get("headquarters", "") if dist_info else "",
+        "lat": dist_info.get("lat", mandals[0]["lat"] if mandals else 0) if dist_info else 0,
+        "lng": dist_info.get("lng", mandals[0]["lng"] if mandals else 0) if dist_info else 0,
+        "highways": dist_info.get("highways", []) if dist_info else [],
+        "total_mandals": len(mandals),
+        "total_villages": len(villages),
+        "total_danger_spots": sum(1 for v in villages if "danger_spot" in v),
+        "total_blackspots": len(blackspots),
+        "total_baseline_ambulances": len(baseline_ambs),
+        "boundary_hull": hull,
+        "mandals": mandal_stats
+    })
+
 @app.route("/api/villages", methods=["GET"])
 def get_villages():
     """Returns villages filtered by district and optional mandal."""
     district = request.args.get("district", "ALL")
     mandal = request.args.get("mandal", "ALL")
-    limit = int(request.args.get("limit", 2500))
+    default_limit = 10000 if (district and district != "ALL") else 2500
+    limit = int(request.args.get("limit", default_limit))
 
     villages = DATA_CACHE.get("villages", [])
     if district and district != "ALL":
@@ -429,7 +502,8 @@ def place_ambulance_nearer():
 def get_village_danger_spots():
     """Returns danger spots for villages filtered by district."""
     district = request.args.get("district", "ALL")
-    limit = int(request.args.get("limit", 2500))
+    default_limit = 10000 if (district and district != "ALL") else 2500
+    limit = int(request.args.get("limit", default_limit))
     villages = DATA_CACHE.get("villages", [])
     if district and district != "ALL":
         villages = [v for v in villages if match_district(v["district"], district)]
