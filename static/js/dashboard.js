@@ -5,6 +5,9 @@
 
 // Global State
 let map;
+let baseLayers = {};
+let currentBaseLayer = null;
+
 let layers = {
   optAmbulances: L.layerGroup(),
   coverageCircles: L.layerGroup(),
@@ -35,21 +38,43 @@ function initMap() {
 
   L.control.zoom({ position: "bottomright" }).addTo(map);
 
-  // High-performance Dark Basemap (Clean, No API Key Required, No Watermark)
-  L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
-    attribution: '&copy; Esri, DeLorme, NAVTEQ',
-    maxZoom: 19,
-    maxNativeZoom: 16
-  }).addTo(map);
+  // Define Basemap Providers: Street-level, Esri Roadways, Satellite, and Dark
+  baseLayers = {
+    streets: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19
+    }),
+    esri_streets: L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+      attribution: 'Tiles &copy; Esri &mdash; DeLorme, NAVTEQ, TomTom',
+      maxZoom: 19
+    }),
+    satellite: L.layerGroup([
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        attribution: 'Tiles &copy; Esri',
+        maxZoom: 19
+      }),
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 19
+      })
+    ]),
+    dark: L.layerGroup([
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+        attribution: '&copy; Esri, DeLorme, NAVTEQ',
+        maxZoom: 19,
+        maxNativeZoom: 16
+      }),
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
+        maxZoom: 19,
+        maxNativeZoom: 16
+      })
+    ])
+  };
 
-  // Administrative Labels & Highway Overlays
-  L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}", {
-    attribution: '',
-    maxZoom: 19,
-    maxNativeZoom: 16
-  }).addTo(map);
+  // Default to Street Map showing each and every road, street, lane, and junction
+  currentBaseLayer = baseLayers.streets;
+  currentBaseLayer.addTo(map);
 
-  // Add layer groups to map
+  // Add operational layer groups to map
   Object.values(layers).forEach(layer => layer.addTo(map));
 
   // Map Click Listener: User can click anywhere in AP to report an accident
@@ -97,6 +122,32 @@ function setupEventListeners() {
   document.getElementById("layer-trauma-centers").addEventListener("change", (e) => {
     toggleLayer(layers.traumaCenters, e.target.checked);
   });
+
+  // Basemap Switcher (Streets, Esri Roadways, Satellite, Dark)
+  const basemapSelect = document.getElementById("basemap-select");
+  if (basemapSelect) {
+    basemapSelect.addEventListener("change", (e) => {
+      const selected = e.target.value;
+      if (baseLayers[selected]) {
+        map.removeLayer(currentBaseLayer);
+        currentBaseLayer = baseLayers[selected];
+        map.addLayer(currentBaseLayer);
+      }
+    });
+  }
+
+  // Bold Labels on Map Toggle
+  const boldLabelsToggle = document.getElementById("layer-bold-labels");
+  if (boldLabelsToggle) {
+    boldLabelsToggle.addEventListener("change", (e) => {
+      const mapEl = document.getElementById("map");
+      if (e.target.checked) {
+        mapEl.classList.remove("hide-bold-labels");
+      } else {
+        mapEl.classList.add("hide-bold-labels");
+      }
+    });
+  }
 
   // Village Autocomplete Search Setup
   setupVillageSearch();
@@ -264,6 +315,12 @@ function renderOptimalAmbulances(stations, radiusKm) {
     });
 
     const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
+    marker.bindTooltip(`<b>${stn.name}</b> <span class="amb-type-badge">${stn.allocated_vehicle_type || 'BLS'}</span>`, {
+      permanent: true,
+      direction: "bottom",
+      className: "bold-map-label ambulance-label",
+      offset: [0, 8]
+    });
     marker.bindPopup(`
       <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:180px;">
         <strong style="color:${markerColor}; font-size:13px;">${stn.name}</strong><br>
@@ -306,6 +363,11 @@ function renderBlackspots(blackspots) {
     });
 
     const marker = L.marker([bs.lat, bs.lng], { icon: customIcon });
+    marker.bindTooltip(`<b>⚠️ ${bs.location_name}</b> <small style="color:#fca5a5;">(${bs.corridor})</small>`, {
+      direction: "top",
+      className: "bold-map-label blackspot-label",
+      offset: [0, -8]
+    });
     marker.bindPopup(`
       <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:200px;">
         <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-triangle-exclamation"></i> Blackspot: ${bs.location_name}</strong><br>
@@ -341,6 +403,12 @@ function renderTraumaCenters(traumaCenters) {
     });
 
     const marker = L.marker([tc.lat, tc.lng], { icon: icon });
+    marker.bindTooltip(`<b>🏥 ${tc.name}</b>`, {
+      permanent: true,
+      direction: "bottom",
+      className: "bold-map-label trauma-label",
+      offset: [0, 8]
+    });
     marker.bindPopup(`
       <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a;">
         <strong style="color:#8b5cf6; font-size:13px;"><i class="fa-solid fa-hospital"></i> ${tc.name}</strong><br>
@@ -368,6 +436,11 @@ function renderBaselineAmbulances(ambulances) {
     });
 
     const marker = L.marker([amb.lat, amb.lng], { icon: icon });
+    marker.bindTooltip(`<b>${amb.station_name}</b>`, {
+      direction: "top",
+      className: "bold-map-label",
+      offset: [0, -6]
+    });
     marker.bindPopup(`
       <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a;">
         <strong>Baseline 108 Base: ${amb.station_name}</strong><br>
@@ -389,6 +462,12 @@ function renderMandals(mandals) {
       fillColor: "#3b82f6",
       fillOpacity: 0.6,
       weight: 1
+    });
+
+    circle.bindTooltip(`<b>${m.mandal_name} Mandal</b>`, {
+      direction: "top",
+      className: "bold-map-label mandal-label",
+      offset: [0, -4]
     });
 
     circle.bindPopup(`
@@ -416,6 +495,12 @@ function renderVillages(villages) {
       fillColor: color,
       fillOpacity: 0.75,
       weight: 1
+    });
+
+    circle.bindTooltip(`<b>${v.village_name}</b> <small style="color:#fef08a;">(${v.mandal})</small>`, {
+      direction: "top",
+      className: "bold-map-label village-label",
+      offset: [0, -4]
     });
 
     circle.bindPopup(`
@@ -527,6 +612,12 @@ async function handleAccidentReport(lat, lng, locationLabel = "") {
   });
 
   const incidentMarker = L.marker([lat, lng], { icon: crashIcon }).addTo(layers.incidents);
+  incidentMarker.bindTooltip(`<b>🚨 ACCIDENT: ${locationLabel || 'Emergency Crash Scene'}</b>`, {
+    permanent: true,
+    direction: "top",
+    className: "bold-map-label blackspot-label",
+    offset: [0, -14]
+  });
 
   // Dispatch API Call
   try {
@@ -587,6 +678,12 @@ async function handleAccidentReport(lat, lng, locationLabel = "") {
         iconAnchor: [15, 15]
       });
       const hospMarker = L.marker([nearestHosp.lat, nearestHosp.lng], { icon: hospIcon }).addTo(layers.incidents);
+      hospMarker.bindTooltip(`<b>🏥 ${nearestHosp.name}</b> <small style="color:#e9d5ff;">(${nearestHosp.distance_km} km / ${nearestHosp.eta_minutes || '--'} min)</small>`, {
+        permanent: true,
+        direction: "top",
+        className: "bold-map-label trauma-label",
+        offset: [0, -10]
+      });
       hospMarker.bindPopup(`
         <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:190px;">
           <strong style="color:#8b5cf6; font-size:13px;"><i class="fa-solid fa-hospital"></i> ${nearestHosp.name}</strong><br>

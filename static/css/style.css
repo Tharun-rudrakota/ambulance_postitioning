@@ -587,3 +587,91 @@ body {
   border-radius: 4px;
   font-weight: 600;
 }
+
+/* Bold Map Labels for Map Objects */
+.bold-map-label {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px !important;
+  background: rgba(15, 23, 42, 0.94) !important;
+  color: #ffffff !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6) !important;
+  white-space: nowrap !important;
+}
+
+.bold-map-label.ambulance-label {
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+.bold-map-label.ambulance-label b {
+  color: #34d399 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.bold-map-label .amb-type-badge {
+  background: #059669;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.bold-map-label.trauma-label {
+  border-color: #a855f7 !important;
+  color: #ffffff !important;
+}
+
+.bold-map-label.trauma-label b {
+  color: #c084fc !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.bold-map-label.blackspot-label {
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.bold-map-label.blackspot-label b {
+  color: #f87171 !important;
+  font-weight: 800 !important;
+}
+
+.bold-map-label.village-label {
+  border-color: #eab308 !important;
+  color: #ffffff !important;
+}
+
+.bold-map-label.village-label b {
+  color: #facc15 !important;
+  font-weight: 800 !important;
+}
+
+.bold-map-label.mandal-label {
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.bold-map-label.mandal-label b {
+  color: #60a5fa !important;
+  font-weight: 800 !important;
+}
+
+.bold-map-label::before {
+  border-top-color: rgba(15, 23, 42, 0.94) !important;
+  border-bottom-color: rgba(15, 23, 42, 0.94) !important;
+}
+
+/* Hide labels when toggled off */
+.hide-bold-labels .bold-map-label {
+  display: none !important;
+}
+

@@ -233,6 +233,24 @@
               <span class="legend-color-dot" style="background:#8b5cf6;"></span> Apex Trauma Centers (GGH)
             </label>
           </div>
+          <div class="legend-item">
+            <input type="checkbox" id="layer-bold-labels" checked>
+            <label for="layer-bold-labels">
+              <span class="legend-color-dot" style="background:#ffffff; border:1px solid #94a3b8;"></span> <strong>Bold Names on Map</strong>
+            </label>
+          </div>
+
+          <div style="margin: 10px 0 4px 0; border-top: 1px solid var(--border-color); padding-top: 8px;">
+            <label for="basemap-select" style="font-weight: 700; font-size: 0.75rem; color: #fff; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <i class="fa-solid fa-map-location"></i> Street Map View
+            </label>
+            <select id="basemap-select" class="form-control" style="font-size: 0.75rem; padding: 5px 8px; width: 100%; background: #0f172a; color: #fff;">
+              <option value="streets" selected>🛣️ Real-Time Streets (Every Road & Lane)</option>
+              <option value="esri_streets">🗺️ High-Definition Roadways</option>
+              <option value="satellite">🛰️ Satellite Hybrid Imagery</option>
+              <option value="dark">🌘 Dark Command Center</option>
+            </select>
+          </div>
         </div>
       </div>
     </section>
