@@ -1616,12 +1616,28 @@ function fitDistrictBounds() {
   }
 }
 
+function scrollToManualPanel() {
+  const panel = document.getElementById("custom-ambulances-panel");
+  if (panel) {
+    panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    panel.style.transition = "box-shadow 0.3s ease, border-color 0.3s ease";
+    panel.style.boxShadow = "0 0 25px rgba(16, 185, 129, 0.7)";
+    panel.style.borderColor = "#10b981";
+    setTimeout(() => {
+      panel.style.boxShadow = "";
+      panel.style.borderColor = "";
+    }, 2500);
+  }
+}
+
 // Global window exposure for inline Leaflet handlers
 window.placeAmbulanceNearer = placeAmbulanceNearer;
 window.saveManualAmbulance = saveManualAmbulance;
 window.deleteManualAmbulance = deleteManualAmbulance;
 window.deleteAllManualAmbulances = deleteAllManualAmbulances;
+window.scrollToManualPanel = scrollToManualPanel;
 window.handleAccidentReport = handleAccidentReport;
 window.focusOnPlace = focusOnPlace;
 window.fitDistrictBounds = fitDistrictBounds;
+
 

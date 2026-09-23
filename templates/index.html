@@ -50,6 +50,10 @@
         <span class="label">Baseline Fleet</span>
         <span class="val" id="stat-baseline">{{ baseline_ambulances_count }}</span>
       </div>
+      <div class="stat-pill highlight-green" id="pill-manual-amb" style="cursor: pointer;" title="Click to view & delete manually placed ambulances" onclick="scrollToManualPanel()">
+        <span class="label">Manual 108s</span>
+        <span class="val" id="stat-manual-amb" style="color: #34d399;">0</span>
+      </div>
       <a href="/api/export_report" class="btn-export" title="Export Station Deployment CSV">
         <i class="fa-solid fa-file-arrow-down"></i> Export Report
       </a>
