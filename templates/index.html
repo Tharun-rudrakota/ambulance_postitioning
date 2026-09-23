@@ -249,6 +249,26 @@
           </div>
         </div>
       </section>
+
+      <!-- Manually Positioned Ambulances Panel (Details & Delete Options) -->
+      <section class="panel custom-ambulances-panel" id="custom-ambulances-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-truck-medical" style="color: #10b981;"></i> Manually Positioned Ambulances</h3>
+          <span class="badge-live" id="custom-amb-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #10b981;">0 Placed</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <span style="font-size: 0.73rem; color: var(--text-muted);">Station details & active units</span>
+          <button id="btn-clear-all-manual" class="btn-text-action" style="color:#f87171; font-size:0.72rem; display:none;" onclick="deleteAllManualAmbulances()" title="Delete all manually placed ambulances">
+            <i class="fa-solid fa-trash-can"></i> Clear All
+          </button>
+        </div>
+        <div id="custom-ambulances-list" class="custom-ambulances-list">
+          <div class="custom-empty-state" style="text-align:center; padding: 12px 8px; background: rgba(15, 23, 42, 0.4); border-radius:6px; border: 1px dashed var(--border-color);">
+            <i class="fa-solid fa-truck-medical" style="font-size: 1.4rem; color: #64748b; margin-bottom: 4px;"></i>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">No manual ambulances placed yet.<br>Click any manual button on a village or in the dispatch simulator to place one.</p>
+          </div>
+        </div>
+      </section>
     </aside>
 
     <!-- Center: Interactive Leaflet Map Area -->

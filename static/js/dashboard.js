@@ -879,7 +879,9 @@ async function loadManualAmbulances() {
 
 // Deletes a manually placed ambulance from disk and memory
 async function deleteManualAmbulance(stationId) {
-  if (!confirm("Are you sure you want to permanently delete this custom 108 ambulance station?")) {
+  const target = customAmbulances.find(a => a.station_id === stationId || a.ambulance_id === stationId);
+  const name = target ? target.name : "this custom 108 ambulance station";
+  if (!confirm(`Are you sure you want to permanently delete ${name}?`)) {
     return;
   }
   try {
@@ -899,6 +901,24 @@ async function deleteManualAmbulance(stationId) {
   }
 }
 
+// Deletes all manually placed ambulances
+async function deleteAllManualAmbulances() {
+  if (!customAmbulances || customAmbulances.length === 0) return;
+  if (!confirm(`Are you sure you want to permanently delete all ${customAmbulances.length} manually placed ambulances?`)) {
+    return;
+  }
+  for (const stn of [...customAmbulances]) {
+    try {
+      await fetch(`/api/manual_ambulances/${encodeURIComponent(stn.station_id)}`, { method: "DELETE" });
+    } catch (e) {}
+  }
+  customAmbulances = [];
+  try {
+    localStorage.removeItem("ap_manual_ambulances");
+  } catch (e) {}
+  renderManualAmbulances([]);
+}
+
 // Renders all saved manual ambulances onto map and sidebar
 function renderManualAmbulances(ambulances) {
   layers.manualAmbulances.clearLayers();
@@ -910,43 +930,54 @@ function renderManualAmbulances(ambulances) {
   if (statPillEl) statPillEl.textContent = totalCount;
 
   const badgeEl = document.getElementById("custom-amb-badge");
-  if (badgeEl) badgeEl.textContent = `${totalCount} Saved`;
+  if (badgeEl) badgeEl.textContent = `${totalCount} Placed`;
 
   const legendCountEl = document.getElementById("legend-custom-count");
   if (legendCountEl) legendCountEl.textContent = totalCount;
+
+  const clearAllBtn = document.getElementById("btn-clear-all-manual");
+  if (clearAllBtn) {
+    clearAllBtn.style.display = totalCount > 0 ? "inline-flex" : "none";
+  }
 
   // Render Sidebar List
   const listContainer = document.getElementById("custom-ambulances-list");
   if (listContainer) {
     if (totalCount === 0) {
       listContainer.innerHTML = `
-        <div class="custom-empty-state" style="text-align:center; padding: 12px 8px; background: rgba(15, 23, 42, 0.4); border-radius:6px; border: 1px dashed var(--border-color);">
-          <i class="fa-solid fa-truck-medical" style="font-size: 1.4rem; color: #64748b; margin-bottom: 4px;"></i>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">No custom ambulances placed yet.<br>Click <strong>"Place Ambulance Manually"</strong> or click any village to station one.</p>
+        <div class="custom-empty-state" style="text-align:center; padding: 14px 10px; background: rgba(15, 23, 42, 0.4); border-radius:6px; border: 1px dashed var(--border-color);">
+          <i class="fa-solid fa-truck-medical" style="font-size: 1.5rem; color: #64748b; margin-bottom: 6px;"></i>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+            No manual ambulances positioned yet.<br>
+            Click the green manual button on any village or in the dispatch simulator to station one nearer.
+          </p>
         </div>
       `;
     } else {
       listContainer.innerHTML = ambulances.map(stn => {
         const safeLng = clampCoastline(stn.lat, stn.lng);
+        const vType = stn.allocated_vehicle_type || "ALS - Rapid Post";
+        const crew = stn.paramedic_crew || 3;
         return `
           <div class="custom-amb-card" id="manual-card-${stn.station_id}">
             <div class="custom-amb-header">
               <span class="custom-amb-name"><i class="fa-solid fa-star" style="color:#fbbf24;"></i> ${stn.name}</span>
-              <span style="font-size:0.68rem; background:rgba(251, 191, 36, 0.2); color:#fbbf24; padding:1px 5px; border-radius:3px; font-weight:700;">108 BASE</span>
+              <span style="font-size:0.68rem; background:rgba(16, 185, 129, 0.2); color:#34d399; border:1px solid #10b981; padding:1px 5px; border-radius:3px; font-weight:700;">ACTIVE BASE</span>
             </div>
             <div class="custom-amb-meta">
-              <span><i class="fa-solid fa-location-dot"></i> ${stn.mandal} Mdl, ${stn.district}</span><br>
-              <span style="color:#94a3b8;"><i class="fa-solid fa-crosshairs"></i> ${stn.lat.toFixed(4)}, ${safeLng.toFixed(4)} (12 km Golden Hour)</span>
+              <div><i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i> <strong>${stn.mandal}</strong> Mandal, <strong>${stn.district}</strong> District</div>
+              <div><i class="fa-solid fa-crosshairs" style="color:#94a3b8;"></i> Coordinates: <code>${stn.lat.toFixed(4)}, ${safeLng.toFixed(4)}</code></div>
+              <div style="margin-top:2px;"><i class="fa-solid fa-truck-medical" style="color:#10b981;"></i> Class: <span style="color:#a7f3d0; font-weight:600;">${vType}</span> (${crew} EMT Crew)</div>
             </div>
             <div class="custom-amb-actions">
-              <button class="btn-amb-fly" onclick="focusAmbulance(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-expand"></i> Fly To
+              <button class="btn-amb-fly" onclick="focusAmbulance(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}')" title="Zoom to ambulance position on map">
+                <i class="fa-solid fa-crosshairs"></i> View
               </button>
-              <button class="btn-amb-fly" style="background:rgba(239, 68, 68, 0.15); border-color:#ef4444; color:#f87171;" onclick="handleAccidentReport(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}', '${stn.district.replace(/'/g, "\\'")}', '${stn.mandal.replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-truck-medical"></i> Test Dispatch
+              <button class="btn-amb-fly" style="background:rgba(239, 68, 68, 0.15); border-color:#ef4444; color:#f87171;" onclick="handleAccidentReport(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}', '${stn.district.replace(/'/g, "\\'")}', '${stn.mandal.replace(/'/g, "\\'")}')" title="Simulate emergency dispatch call to this station">
+                <i class="fa-solid fa-truck-medical"></i> Dispatch
               </button>
-              <button class="btn-amb-delete" title="Permanently delete this station" onclick="deleteManualAmbulance('${stn.station_id}')">
-                <i class="fa-solid fa-trash-can"></i>
+              <button class="btn-amb-delete" title="Permanently delete this manual position ambulance" onclick="deleteManualAmbulance('${stn.station_id}')">
+                <i class="fa-solid fa-trash-can"></i> Delete
               </button>
             </div>
           </div>
@@ -1589,6 +1620,7 @@ function fitDistrictBounds() {
 window.placeAmbulanceNearer = placeAmbulanceNearer;
 window.saveManualAmbulance = saveManualAmbulance;
 window.deleteManualAmbulance = deleteManualAmbulance;
+window.deleteAllManualAmbulances = deleteAllManualAmbulances;
 window.handleAccidentReport = handleAccidentReport;
 window.focusOnPlace = focusOnPlace;
 window.fitDistrictBounds = fitDistrictBounds;
