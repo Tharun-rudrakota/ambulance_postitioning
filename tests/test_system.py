@@ -306,5 +306,85 @@ class TestAPAmbulanceOptimizer(unittest.TestCase):
         self.assertEqual(ds_data["status"], "success")
         self.assertGreaterEqual(len(ds_data["danger_spots"]), 600, "Should return 100% of district danger zones")
 
+    def test_11_manual_ambulance_persistence_across_sessions(self):
+        """
+        Verify that manually placed ambulances are saved to disk,
+        persist across server restarts / reloads, remain in the active fleet,
+        are recognized by the CAD dispatch engine, and can be deleted.
+        """
+        client = app.test_client()
+        test_lat = 14.8512
+        test_lng = 79.4125
+        stn_name = "Duttalur Custom 108 Base Station"
+
+        # 1. Post a new manual ambulance placement
+        res = client.post("/api/manual_ambulances", json={
+            "lat": test_lat,
+            "lng": test_lng,
+            "name": stn_name,
+            "district": "SPS Nellore",
+            "mandal": "Duttalur",
+            "vehicle_type": "Advanced Life Support (ALS) - Custom Base",
+            "radius_km": 12.0
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()
+        self.assertEqual(data["status"], "success")
+        self.assertIn("ambulance", data)
+        station_id = data["ambulance"]["station_id"]
+        self.assertEqual(data["ambulance"]["name"], stn_name)
+        self.assertEqual(data["ambulance"]["mandal"], "Duttalur")
+        self.assertTrue(data["ambulance"]["is_manual"])
+
+        # 2. Verify it is saved in data/ap_manual_ambulances.json on disk
+        man_path = os.path.join(BASE_DIR, "data", "ap_manual_ambulances.json")
+        self.assertTrue(os.path.exists(man_path))
+        with open(man_path, "r", encoding="utf-8") as f:
+            disk_stations = json.load(f)
+        saved_on_disk = [s for s in disk_stations if s.get("station_id") == station_id]
+        self.assertEqual(len(saved_on_disk), 1, "Ambulance must be written to disk immediately")
+
+        # 3. Simulate Server Restart / Page Reload by reloading data from disk
+        load_data()
+        in_cache = [s for s in DATA_CACHE["manual_ambulances"] if s.get("station_id") == station_id]
+        self.assertEqual(len(in_cache), 1, "Ambulance must survive reload into DATA_CACHE")
+        in_fleet = [s for s in DATA_CACHE["active_fleet"] if s.get("station_id") == station_id or s.get("ambulance_id") == station_id]
+        self.assertGreaterEqual(len(in_fleet), 1, "Ambulance must survive reload into active_fleet")
+
+        # 4. Verify CAD dispatch engine dispatches this newly placed station for an incident at Duttalur
+        disp_res = client.post("/api/dispatch", json={
+            "lat": test_lat,
+            "lng": test_lng,
+            "severity": "Critical"
+        })
+        self.assertEqual(disp_res.status_code, 200)
+        disp_data = disp_res.get_json()
+        self.assertEqual(disp_data["status"], "success")
+        dispatched_amb = disp_data["dispatch"]["dispatched_ambulance"]
+        self.assertEqual(dispatched_amb["station_id"], station_id)
+        self.assertEqual(dispatched_amb["name"], stn_name)
+        self.assertLess(disp_data["dispatch"]["response_metrics"]["road_distance_km"], 0.5)
+        self.assertLess(disp_data["dispatch"]["response_metrics"]["estimated_eta_minutes"], 2.0)
+        self.assertEqual(disp_data["dispatch"]["response_metrics"]["golden_hour_status"], "GOLDEN_HOUR_MET")
+
+        # 5. Verify GET /api/manual_ambulances returns the station
+        get_res = client.get("/api/manual_ambulances?district=SPS+Nellore")
+        self.assertEqual(get_res.status_code, 200)
+        get_data = get_res.get_json()
+        self.assertEqual(get_data["status"], "success")
+        found = [s for s in get_data["ambulances"] if s.get("station_id") == station_id]
+        self.assertEqual(len(found), 1)
+
+        # 6. Verify DELETE /api/manual_ambulances removes it permanently
+        del_res = client.delete(f"/api/manual_ambulances/{station_id}")
+        self.assertEqual(del_res.status_code, 200)
+        del_data = del_res.get_json()
+        self.assertEqual(del_data["status"], "success")
+
+        # Verify removed from disk
+        with open(man_path, "r", encoding="utf-8") as f:
+            disk_after = json.load(f)
+        self.assertEqual(len([s for s in disk_after if s.get("station_id") == station_id]), 0)
+
 if __name__ == "__main__":
     unittest.main()

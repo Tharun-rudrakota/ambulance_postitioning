@@ -192,7 +192,15 @@ class DispatchEngine:
         self.statewide_stations = stations
 
     def add_custom_station(self, station: Dict[str, Any]):
+        # Prevent duplicates
+        self.custom_stations = [s for s in self.custom_stations if s.get("station_id") != station.get("station_id")]
         self.custom_stations.insert(0, station)
+
+    def set_custom_stations(self, stations: List[Dict[str, Any]]):
+        self.custom_stations = list(stations)
+
+    def remove_custom_station(self, station_id: str):
+        self.custom_stations = [s for s in self.custom_stations if s.get("station_id") != station_id]
 
     def dispatch_nearest_ambulance(self, accident_lat: float, accident_lng: float, severity: str = "Critical") -> Dict[str, Any]:
         """

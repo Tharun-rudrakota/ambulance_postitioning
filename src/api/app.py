@@ -18,6 +18,10 @@ from ..simulation.golden_hour_evaluator import GoldenHourEvaluator
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+from data.dataset_generator import clamp_to_ap_land
+
 DATA_DIR = os.path.join(BASE_DIR, "data")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
@@ -31,7 +35,8 @@ DATA_CACHE = {
     "blackspots": [],
     "baseline_ambulances": [],
     "active_fleet": [],
-    "villages": []
+    "villages": [],
+    "manual_ambulances": []
 }
 
 def load_data():
@@ -40,9 +45,10 @@ def load_data():
     bs_path = os.path.join(DATA_DIR, "ap_highways_blackspots.json")
     amb_path = os.path.join(DATA_DIR, "ap_baseline_ambulances.json")
     vil_path = os.path.join(DATA_DIR, "ap_villages.json")
+    man_path = os.path.join(DATA_DIR, "ap_manual_ambulances.json")
 
     if not os.path.exists(dm_path) or not os.path.exists(bs_path) or not os.path.exists(vil_path):
-        from ..data.dataset_generator import generate_complete_dataset
+        from data.dataset_generator import generate_complete_dataset
         generate_complete_dataset(DATA_DIR)
 
     with open(dm_path, "r", encoding="utf-8") as f:
@@ -63,6 +69,23 @@ def load_data():
         with open(vil_path, "r", encoding="utf-8") as f:
             vil_data = json.load(f)
             DATA_CACHE["villages"] = vil_data.get("villages", [])
+
+    # Load persistent manually placed ambulances
+    if os.path.exists(man_path):
+        try:
+            with open(man_path, "r", encoding="utf-8") as f:
+                DATA_CACHE["manual_ambulances"] = json.load(f)
+        except Exception as e:
+            print(f"Warning: Error loading manual ambulances: {e}")
+            DATA_CACHE["manual_ambulances"] = []
+    else:
+        DATA_CACHE["manual_ambulances"] = []
+        with open(man_path, "w", encoding="utf-8") as f:
+            json.dump([], f, indent=2)
+
+    # Prepend manually placed ambulances to active fleet
+    for man_stn in DATA_CACHE["manual_ambulances"]:
+        DATA_CACHE["active_fleet"].insert(0, man_stn)
 
     # Build statewide ambulance pool: baseline 108 stations + every mandal's CHC/PHC 108 emergency station
     statewide = list(DATA_CACHE["baseline_ambulances"])
@@ -85,6 +108,7 @@ dispatch_engine = DispatchEngine(
     DATA_CACHE["active_fleet"],
     statewide_stations=DATA_CACHE.get("statewide_ambulances", [])
 )
+dispatch_engine.set_custom_stations(DATA_CACHE.get("manual_ambulances", []))
 
 @app.route("/")
 def index():
@@ -396,8 +420,21 @@ def optimize_positioning():
     opt_result["ready_mandal_stations"] = ready_stations
 
     # Update active fleet in cache and dispatch engine:
-    # Combine selected priority ALS stations + all complementary ready mandal stations!
+    # Combine manual custom stations + selected priority ALS stations + all complementary ready mandal stations!
     active_fleet = []
+    # 1. Custom manually placed ambulances have highest priority
+    for stn in DATA_CACHE.get("manual_ambulances", []):
+        active_fleet.append({
+            "ambulance_id": stn["station_id"],
+            "name": stn["name"],
+            "lat": stn["lat"],
+            "lng": stn["lng"],
+            "district": stn.get("district", ""),
+            "mandal": stn.get("mandal", ""),
+            "allocated_vehicle_type": stn.get("allocated_vehicle_type", "Advanced Life Support (ALS)"),
+            "is_manual": True
+        })
+
     for stn in opt_result["selected_stations"]:
         active_fleet.append({
             "ambulance_id": stn["station_id"],
@@ -421,6 +458,8 @@ def optimize_positioning():
 
     DATA_CACHE["active_fleet"] = active_fleet
     dispatch_engine.update_fleet(active_fleet)
+    dispatch_engine.set_custom_stations(DATA_CACHE.get("manual_ambulances", []))
+    opt_result["manual_stations"] = DATA_CACHE.get("manual_ambulances", [])
 
     # Run comparative evaluation against baseline
     evaluator = GoldenHourEvaluator(mandals, blackspots)
@@ -435,6 +474,152 @@ def optimize_positioning():
         "district": district,
         "optimization": opt_result,
         "evaluation": comparison
+    })
+
+def save_manual_ambulances_to_disk():
+    """Persists all manually placed ambulances to data/ap_manual_ambulances.json."""
+    man_path = os.path.join(DATA_DIR, "ap_manual_ambulances.json")
+    try:
+        with open(man_path, "w", encoding="utf-8") as f:
+            json.dump(DATA_CACHE.get("manual_ambulances", []), f, indent=2)
+    except Exception as e:
+        print(f"Error saving manual ambulances: {e}")
+
+def find_nearest_mandal(lat: float, lng: float):
+    """Finds the closest mandal for any given coordinates."""
+    best_mandal = None
+    min_d = float("inf")
+    for m in DATA_CACHE.get("mandals", []):
+        d = (m["lat"] - lat)**2 + (m["lng"] - lng)**2
+        if d < min_d:
+            min_d = d
+            best_mandal = m
+    return best_mandal
+
+@app.route("/api/manual_ambulances", methods=["GET"])
+def get_manual_ambulances():
+    """Returns all saved manually placed 108 ambulances."""
+    district = request.args.get("district", "ALL")
+    manual_ambs = DATA_CACHE.get("manual_ambulances", [])
+    if district and district != "ALL":
+        filtered = [a for a in manual_ambs if match_district(a.get("district", ""), district)]
+    else:
+        filtered = manual_ambs
+
+    return jsonify({
+        "status": "success",
+        "total": len(filtered),
+        "district": district,
+        "ambulances": filtered
+    })
+
+@app.route("/api/manual_ambulances", methods=["POST"])
+def add_manual_ambulance():
+    """
+    Permanently saves a manually placed 108 ambulance to disk and registers in active fleet.
+    JSON payload:
+    {
+        "lat": float,
+        "lng": float,
+        "name": str,
+        "district": str (optional),
+        "mandal": str (optional),
+        "vehicle_type": str (optional),
+        "radius_km": float (optional)
+    }
+    """
+    data = request.get_json() or {}
+    raw_lat = float(data.get("lat", 16.312))
+    raw_lng = float(data.get("lng", 80.451))
+    safe_lat = round(raw_lat, 5)
+    safe_lng = clamp_to_ap_land(safe_lat, raw_lng)
+
+    mandal = data.get("mandal", "").strip()
+    district = data.get("district", "").strip()
+
+    # Automatically resolve nearest mandal and district if missing or generic
+    if not mandal or mandal in ["Local", "General", ""] or not district or district in ["General", ""]:
+        nearest_m = find_nearest_mandal(safe_lat, safe_lng)
+        if nearest_m:
+            mandal = nearest_m["mandal_name"]
+            district = nearest_m["district"]
+        else:
+            mandal = mandal or "Local Mandal"
+            district = district or "Andhra Pradesh"
+
+    custom_name = data.get("name", "").strip()
+    if not custom_name:
+        custom_name = f"{mandal} Custom 108 Base Station"
+
+    vehicle_type = data.get("vehicle_type", "Advanced Life Support (ALS) - Custom Base")
+    radius_km = float(data.get("radius_km", 12.0))
+    station_id = f"MANUAL-108-{int(time.time()*1000)%1000000}"
+
+    new_stn = {
+        "station_id": station_id,
+        "ambulance_id": station_id,
+        "name": custom_name,
+        "district": district,
+        "mandal": mandal,
+        "lat": safe_lat,
+        "lng": safe_lng,
+        "allocated_vehicle_type": vehicle_type,
+        "paramedic_crew": 3 if "ALS" in vehicle_type else 2,
+        "equipment": ["Ventilator", "Defibrillator", "Oxygen Cylinder", "Stretcher", "Suction Unit"] if "ALS" in vehicle_type else ["Oxygen Cylinder", "First Aid Kit", "Stretcher"],
+        "coverage_radius_km": radius_km,
+        "is_manual": True,
+        "created_at": int(time.time() * 1000)
+    }
+
+    # Store in memory cache
+    manual_list = DATA_CACHE.get("manual_ambulances", [])
+    # Replace existing station if same coordinates or ID
+    manual_list = [s for s in manual_list if s.get("station_id") != station_id]
+    manual_list.insert(0, new_stn)
+    DATA_CACHE["manual_ambulances"] = manual_list
+
+    # Update active fleet
+    if "active_fleet" in DATA_CACHE:
+        DATA_CACHE["active_fleet"] = [s for s in DATA_CACHE["active_fleet"] if s.get("station_id") != station_id]
+        DATA_CACHE["active_fleet"].insert(0, new_stn)
+
+    # Register into live dispatch engine
+    dispatch_engine.add_custom_station(new_stn)
+
+    # Save permanently to disk
+    save_manual_ambulances_to_disk()
+
+    return jsonify({
+        "status": "success",
+        "message": f"108 Ambulance permanently stationed at {custom_name}!",
+        "ambulance": new_stn,
+        "total_manual": len(manual_list)
+    })
+
+@app.route("/api/manual_ambulances/<station_id>", methods=["DELETE"])
+def delete_manual_ambulance(station_id):
+    """Permanently deletes a manually placed ambulance from disk and memory."""
+    manual_list = DATA_CACHE.get("manual_ambulances", [])
+    initial_len = len(manual_list)
+    updated_list = [s for s in manual_list if s.get("station_id") != station_id and s.get("ambulance_id") != station_id]
+
+    if len(updated_list) == initial_len:
+        return jsonify({
+            "status": "error",
+            "message": f"Ambulance station {station_id} not found."
+        }), 404
+
+    DATA_CACHE["manual_ambulances"] = updated_list
+    if "active_fleet" in DATA_CACHE:
+        DATA_CACHE["active_fleet"] = [s for s in DATA_CACHE["active_fleet"] if s.get("station_id") != station_id and s.get("ambulance_id") != station_id]
+
+    dispatch_engine.remove_custom_station(station_id)
+    save_manual_ambulances_to_disk()
+
+    return jsonify({
+        "status": "success",
+        "message": f"Ambulance station {station_id} deleted permanently.",
+        "total_manual": len(updated_list)
     })
 
 @app.route("/api/dispatch", methods=["POST"])
@@ -464,38 +649,63 @@ def place_ambulance_nearer():
     """
     Positions a Rapid Response 108 Ambulance right at or near
     a village or danger spot to immediately reduce response time and save the Golden Hour.
+    Permanently persists the station so it never disappears on refresh.
     """
     data = request.get_json() or {}
-    lat = float(data.get("lat", 16.312))
-    lng = float(data.get("lng", 80.451))
+    raw_lat = float(data.get("lat", 16.312))
+    raw_lng = float(data.get("lng", 80.451))
+    safe_lat = round(raw_lat, 5)
+    safe_lng = clamp_to_ap_land(safe_lat, raw_lng)
+
     location_name = data.get("location_name", "Village Danger Spot")
     district = data.get("district", "General")
     mandal = data.get("mandal", "Local")
 
+    if not mandal or mandal in ["Local", "General"] or not district or district in ["General"]:
+        nearest_m = find_nearest_mandal(safe_lat, safe_lng)
+        if nearest_m:
+            mandal = nearest_m["mandal_name"]
+            district = nearest_m["district"]
+
+    stn_id = f"RAPID-108-{int(time.time()*1000)%100000}"
     new_stn = {
-        "station_id": f"RAPID-108-{int(time.time()*1000)%100000}",
+        "station_id": stn_id,
+        "ambulance_id": stn_id,
         "name": f"{location_name} Rapid 108 Post",
         "district": district,
         "mandal": mandal,
-        "lat": lat,
-        "lng": lng,
+        "lat": safe_lat,
+        "lng": safe_lng,
         "allocated_vehicle_type": "Advanced Life Support (ALS) - Rapid Post",
         "paramedic_crew": 3,
-        "is_custom_nearer": True
+        "equipment": ["Ventilator", "Defibrillator", "Oxygen Cylinder", "Stretcher", "Suction Unit"],
+        "coverage_radius_km": 12.0,
+        "is_custom_nearer": True,
+        "is_manual": True,
+        "created_at": int(time.time() * 1000)
     }
 
+    # Add to custom stations and save persistently
     dispatch_engine.add_custom_station(new_stn)
+    manual_list = DATA_CACHE.get("manual_ambulances", [])
+    manual_list = [s for s in manual_list if s.get("station_id") != stn_id]
+    manual_list.insert(0, new_stn)
+    DATA_CACHE["manual_ambulances"] = manual_list
+
     if "active_fleet" in DATA_CACHE:
         DATA_CACHE["active_fleet"].insert(0, new_stn)
 
+    save_manual_ambulances_to_disk()
+
     # Immediately re-run dispatch for this spot
-    dispatch_res = dispatch_engine.dispatch_nearest_ambulance(lat, lng, severity="Critical")
+    dispatch_res = dispatch_engine.dispatch_nearest_ambulance(safe_lat, safe_lng, severity="Critical")
 
     return jsonify({
         "status": "success",
         "station": new_stn,
         "dispatch": dispatch_res,
-        "message": f"Rapid 108 Ambulance stationed at {location_name}!"
+        "total_manual": len(manual_list),
+        "message": f"Rapid 108 Ambulance stationed permanently at {location_name}!"
     })
 
 @app.route("/api/village_danger_spots", methods=["GET"])

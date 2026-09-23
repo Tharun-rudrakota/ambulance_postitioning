@@ -1024,5 +1024,256 @@ body {
   box-shadow: 0 0 14px rgba(2, 132, 199, 0.5) !important;
 }
 
+/* ==========================================================================
+   Manual Ambulance Placement & Multi-Session Persistence Styles
+   ========================================================================== */
+
+/* Header Stat Pill Highlight Gold */
+.stat-pill.highlight-gold {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+}
+.stat-pill.highlight-gold .val {
+  color: #fbbf24;
+}
+
+/* Placement Mode Active on Map */
+body.manual-placement-mode #map {
+  cursor: crosshair !important;
+}
+
+/* Toggle Placement Button Active State */
+#btn-toggle-manual-placement.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.6) !important;
+  animation: pulse-glow-amber 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-glow-amber {
+  0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.85); }
+  100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
+}
+
+/* Floating Top Notification Banner during Placement */
+.placement-mode-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.placement-mode-banner.hidden {
+  display: none;
+}
+
+.placement-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid #fbbf24;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 16px rgba(251, 191, 36, 0.4);
+  backdrop-filter: blur(8px);
+  color: #f8fafc;
+  font-size: 0.85rem;
+}
+
+/* Marker for Manually Placed Custom Ambulances */
+.marker-manual-ambulance {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: 2px solid #fbbf24;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.7), 0 4px 8px rgba(0,0,0,0.5);
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.marker-manual-ambulance:hover {
+  transform: scale(1.15);
+}
+
+.marker-manual-ambulance .star-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #fbbf24;
+  color: #0f172a;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 1px solid #fff;
+}
+
+/* Custom Ambulances Sidebar Drawer / List */
+.custom-ambulances-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-amb-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 6px;
+  padding: 8px 10px;
+  transition: all 0.2s ease;
+}
+
+.custom-amb-card:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: #fbbf24;
+}
+
+.custom-amb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.custom-amb-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.custom-amb-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.custom-amb-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-amb-fly {
+  flex: 1;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  color: #34d399;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.btn-amb-fly:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+.btn-amb-delete {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #f87171;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-amb-delete:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* Manual Placement Popup Form */
+.manual-placement-popup {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  min-width: 240px;
+}
+
+.manual-placement-popup h4 {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.manual-placement-popup .form-group-sm {
+  margin-bottom: 6px;
+}
+
+.manual-placement-popup label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.manual-placement-popup input,
+.manual-placement-popup select {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.manual-placement-popup .btn-confirm-save {
+  background: #10b981;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: background 0.15s ease;
+}
+
+.manual-placement-popup .btn-confirm-save:hover {
+  background: #059669;
+}
+
 
 

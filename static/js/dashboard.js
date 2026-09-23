@@ -10,6 +10,7 @@ let currentBaseLayer = null;
 
 let layers = {
   districtBoundary: L.layerGroup(),
+  manualAmbulances: L.layerGroup(),
   optAmbulances: L.layerGroup(),
   coverageCircles: L.layerGroup(),
   blackspots: L.layerGroup(),
@@ -24,6 +25,8 @@ let layers = {
 let currentBlackspots = [];
 let currentOptimalStations = [];
 let currentReadyStations = [];
+let customAmbulances = [];
+let isManualPlacementMode = false;
 let allMandals = [];
 let currentDistrictPlaces = [];
 let currentDistrictBounds = null;
@@ -138,9 +141,13 @@ function initMap() {
   // Add operational layer groups to map
   Object.values(layers).forEach(layer => layer.addTo(map));
 
-  // Map Click Listener: User can click anywhere in AP to report an accident
+  // Map Click Listener: User can place ambulance manually OR trigger accident dispatch
   map.on("click", (e) => {
-    handleAccidentReport(e.latlng.lat, e.latlng.lng);
+    if (isManualPlacementMode) {
+      openPlacementConfirmationPopup(e.latlng.lat, e.latlng.lng);
+    } else {
+      handleAccidentReport(e.latlng.lat, e.latlng.lng);
+    }
   });
 }
 
@@ -159,6 +166,13 @@ function setupEventListeners() {
   });
 
   // Layer toggles
+  const layerManualAmbsEl = document.getElementById("layer-manual-ambulances");
+  if (layerManualAmbsEl) {
+    layerManualAmbsEl.addEventListener("change", (e) => {
+      toggleLayer(layers.manualAmbulances, e.target.checked);
+    });
+  }
+
   document.getElementById("layer-opt-ambulances").addEventListener("change", (e) => {
     toggleLayer(layers.optAmbulances, e.target.checked);
   });
@@ -189,6 +203,28 @@ function setupEventListeners() {
   document.getElementById("layer-trauma-centers").addEventListener("change", (e) => {
     toggleLayer(layers.traumaCenters, e.target.checked);
   });
+
+  // Toggle Manual Placement Mode Buttons
+  const btnTogglePlacement = document.getElementById("btn-toggle-manual-placement");
+  if (btnTogglePlacement) {
+    btnTogglePlacement.addEventListener("click", () => {
+      toggleManualPlacementMode();
+    });
+  }
+
+  const btnQuickPlace = document.getElementById("btn-quick-place-here");
+  if (btnQuickPlace) {
+    btnQuickPlace.addEventListener("click", () => {
+      toggleManualPlacementMode(true);
+    });
+  }
+
+  const btnCancelPlacement = document.getElementById("btn-cancel-placement");
+  if (btnCancelPlacement) {
+    btnCancelPlacement.addEventListener("click", () => {
+      toggleManualPlacementMode(false);
+    });
+  }
 
   // Place Ambulance Position Nearer Button
   const btnPlaceNearer = document.getElementById("btn-place-ambulance-nearer");
@@ -289,6 +325,9 @@ function toggleLayer(layer, isVisible) {
 
 async function loadInitialData() {
   try {
+    // 0. Load Permanent Manually Placed Ambulances from Server & localStorage
+    await loadManualAmbulances();
+
     // 1. Load Trauma Centers
     const traumaRes = await fetch("/api/trauma_centers");
     const traumaData = await traumaRes.json();
@@ -339,6 +378,7 @@ async function runOptimization() {
       currentOptimalStations = data.optimization.selected_stations || [];
       currentReadyStations = data.optimization.ready_mandal_stations || [];
       renderOptimalAmbulances(currentOptimalStations, currentReadyStations, radiusKm);
+      renderManualAmbulances(customAmbulances);
       updateKPIs(data);
 
       // Load blackspots for this district or state
@@ -705,9 +745,12 @@ function renderVillages(villages) {
           <strong style="color:#15803d;"><i class="fa-solid fa-truck-medical"></i> Ready 108 Station:</strong><br>
           <span style="color:#166534; font-weight:600;">${v.mandal} Mandal HQ Station</span> (< 5 min response)
         </div>
-        <div style="margin-top:8px;">
+        <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
           <button onclick="handleAccidentReport(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch Here
+          </button>
+          <button onclick="saveManualAmbulance(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} 108 Base', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')" style="background:#f59e0b; color:#0f172a; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <i class="fa-solid fa-star"></i> ⭐ Station Permanent 108 Ambulance Here
           </button>
         </div>
       </div>
@@ -768,9 +811,12 @@ function renderVillageDangerSpots(dangerSpots) {
           <strong style="color:#15803d;"><i class="fa-solid fa-truck-medical"></i> Stationed Ready Ambulance:</strong><br>
           <span style="color:#166534; font-weight:600;">${ds.mandal} 108 Ready Emergency Station</span> (< 5 min response)
         </div>
-        <div style="margin-top:8px;">
+        <div style="margin-top:8px; display:flex; flex-direction:column; gap:5px;">
           <button onclick="handleAccidentReport(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone (${ds.mandal} Mdl)', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch to Danger Zone
+          </button>
+          <button onclick="saveManualAmbulance(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} 108 Base', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')" style="background:#f59e0b; color:#0f172a; border:none; border-radius:4px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <i class="fa-solid fa-star"></i> ⭐ Station Permanent 108 Ambulance Here
           </button>
         </div>
       </div>
@@ -797,26 +843,8 @@ async function placeAmbulanceNearer(lat, lng, locationLabel = "Danger Spot", dis
     if (data.status === "success" && data.station) {
       const stn = data.station;
 
-      // Add Rapid Ambulance to map layer in bright glowing emerald green
-      const customIcon = L.divIcon({
-        className: "custom-div-icon",
-        html: `
-          <div class="marker-rapid-ambulance" style="width:32px; height:32px;">
-            <i class="fa-solid fa-truck-fast"></i>
-          </div>
-        `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      });
-
-      const marker = L.marker([stn.lat, stn.lng], { icon: customIcon });
-      marker.bindTooltip(`<b>⚡ RAPID POST: ${stn.name}</b>`, {
-        permanent: true,
-        direction: "bottom",
-        className: "bold-map-label ambulance-label",
-        offset: [0, 10]
-      });
-      layers.optAmbulances.addLayer(marker);
+      // Reload & render manual ambulances so this newly placed station is preserved across reloads
+      await loadManualAmbulances();
 
       // Trigger instant accident dispatch at this spot to show immediate < 2 min response!
       handleAccidentReport(lat, lng, `${locationLabel} (Nearer Ambulance Deployed)`, district, mandal);
@@ -825,6 +853,357 @@ async function placeAmbulanceNearer(lat, lng, locationLabel = "Danger Spot", dis
     console.error("Error placing ambulance nearer:", err);
   }
 }
+
+// ==========================================================================
+// Manual Ambulance Placement & Multi-Session Persistence Implementation
+// ==========================================================================
+
+// Toggle Manual Placement Mode
+function toggleManualPlacementMode(forceState = null) {
+  if (forceState !== null) {
+    isManualPlacementMode = forceState;
+  } else {
+    isManualPlacementMode = !isManualPlacementMode;
+  }
+
+  const btn = document.getElementById("btn-toggle-manual-placement");
+  const banner = document.getElementById("placement-mode-banner");
+
+  if (isManualPlacementMode) {
+    document.body.classList.add("manual-placement-mode");
+    if (btn) {
+      btn.classList.add("active");
+      btn.innerHTML = '<i class="fa-solid fa-crosshairs pulse-icon"></i> 📍 Click Map to Station 108 Base';
+    }
+    if (banner) banner.classList.remove("hidden");
+  } else {
+    document.body.classList.remove("manual-placement-mode");
+    if (btn) {
+      btn.classList.remove("active");
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> 📍 Place Ambulance Manually';
+    }
+    if (banner) banner.classList.add("hidden");
+  }
+}
+
+// Client-side helper to find nearest mandal for detected coordinates
+function findNearestMandalClient(lat, lng) {
+  if (!allMandals || allMandals.length === 0) return null;
+  let bestM = null;
+  let minD = Infinity;
+  for (const m of allMandals) {
+    const d = Math.pow(m.lat - lat, 2) + Math.pow(m.lng - lng, 2);
+    if (d < minD) {
+      minD = d;
+      bestM = m;
+    }
+  }
+  return bestM;
+}
+
+// Opens placement confirmation popup on map click during placement mode
+function openPlacementConfirmationPopup(rawLat, rawLng) {
+  const safeLat = Math.round(rawLat * 100000) / 100000;
+  const safeLng = clampCoastline(safeLat, rawLng);
+  const nearestM = findNearestMandalClient(safeLat, safeLng);
+  const mandalName = nearestM ? nearestM.mandal_name : "Local";
+  const districtName = nearestM ? nearestM.district : "Andhra Pradesh";
+  const defaultStnName = `${mandalName} Custom 108 Base`;
+
+  const popupContent = document.createElement("div");
+  popupContent.className = "manual-placement-popup";
+  popupContent.innerHTML = `
+    <h4><i class="fa-solid fa-star" style="color:#fbbf24;"></i> Station Permanent 108 Base</h4>
+    <div style="font-size:11px; color:#475569; margin-bottom:6px; background:#f8fafc; padding:4px 6px; border-radius:4px; border:1px solid #e2e8f0;">
+      <strong>Zone:</strong> ${mandalName} Mandal, ${districtName}<br>
+      <span style="font-size:10px; color:#64748b;">Coordinates: ${safeLat.toFixed(4)}, ${safeLng.toFixed(4)}</span>
+    </div>
+    <div class="form-group-sm">
+      <label for="input-custom-stn-name">Station / Unit Name:</label>
+      <input type="text" id="input-custom-stn-name" value="${defaultStnName}" style="font-weight:600;" />
+    </div>
+    <div class="form-group-sm">
+      <label for="select-custom-stn-type">Vehicle Class & Equipment:</label>
+      <select id="select-custom-stn-type">
+        <option value="Advanced Life Support (ALS) - Custom Base" selected>ALS (ICU Ventilator, Defibrillator, Paramedic Crew of 3)</option>
+        <option value="Basic Life Support (BLS) - Custom Post">BLS (Oxygen Cylinder, First Aid, Paramedic Crew of 2)</option>
+      </select>
+    </div>
+    <button id="btn-popup-save-manual" class="btn-confirm-save">
+      <i class="fa-solid fa-floppy-disk"></i> Confirm & Save Permanently
+    </button>
+  `;
+
+  const popup = L.popup({ minWidth: 260 })
+    .setLatLng([safeLat, safeLng])
+    .setContent(popupContent)
+    .openOn(map);
+
+  setTimeout(() => {
+    const saveBtn = document.getElementById("btn-popup-save-manual");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", async () => {
+        const nameInput = document.getElementById("input-custom-stn-name");
+        const typeSelect = document.getElementById("select-custom-stn-type");
+        const stnName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : defaultStnName;
+        const vehicleType = typeSelect ? typeSelect.value : "Advanced Life Support (ALS) - Custom Base";
+
+        map.closePopup();
+        toggleManualPlacementMode(false);
+        await saveManualAmbulance(safeLat, safeLng, stnName, districtName, mandalName, vehicleType);
+      });
+    }
+  }, 80);
+}
+
+// Saves a manual ambulance permanently to disk and updates localStorage
+async function saveManualAmbulance(lat, lng, name = "Custom 108 Base", district = "", mandal = "", vehicleType = "Advanced Life Support (ALS) - Custom Base") {
+  try {
+    const res = await fetch("/api/manual_ambulances", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lat: lat,
+        lng: lng,
+        name: name,
+        district: district,
+        mandal: mandal,
+        vehicle_type: vehicleType,
+        radius_km: 12.0
+      })
+    });
+
+    const data = await res.json();
+    if (data.status === "success" && data.ambulance) {
+      const newAmb = data.ambulance;
+      // Filter out duplicate ID and prepend
+      customAmbulances = customAmbulances.filter(a => a.station_id !== newAmb.station_id);
+      customAmbulances.unshift(newAmb);
+
+      // Save to localStorage backup
+      try {
+        localStorage.setItem("ap_manual_ambulances", JSON.stringify(customAmbulances));
+      } catch (e) {}
+
+      // Render updated custom ambulances
+      renderManualAmbulances(customAmbulances);
+
+      // Pan & fly map to newly stationed ambulance
+      map.flyTo([newAmb.lat, newAmb.lng], 13, { duration: 1.0 });
+
+      return newAmb;
+    }
+  } catch (err) {
+    console.error("Error saving manual ambulance:", err);
+  }
+}
+
+// Loads manual ambulances from server with localStorage fallback
+async function loadManualAmbulances() {
+  try {
+    const res = await fetch("/api/manual_ambulances");
+    const data = await res.json();
+    if (data.status === "success" && Array.isArray(data.ambulances) && data.ambulances.length > 0) {
+      customAmbulances = data.ambulances;
+      try {
+        localStorage.setItem("ap_manual_ambulances", JSON.stringify(customAmbulances));
+      } catch (e) {}
+    } else {
+      // Check localStorage backup
+      const cached = localStorage.getItem("ap_manual_ambulances");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Re-sync back to server
+            for (const amb of parsed) {
+              await fetch("/api/manual_ambulances", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(amb)
+              });
+            }
+            customAmbulances = parsed;
+          }
+        } catch (e) {}
+      }
+    }
+    renderManualAmbulances(customAmbulances);
+  } catch (err) {
+    console.error("Error loading manual ambulances:", err);
+  }
+}
+
+// Deletes a manually placed ambulance from disk and memory
+async function deleteManualAmbulance(stationId) {
+  if (!confirm("Are you sure you want to permanently delete this custom 108 ambulance station?")) {
+    return;
+  }
+  try {
+    const res = await fetch(`/api/manual_ambulances/${encodeURIComponent(stationId)}`, {
+      method: "DELETE"
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      customAmbulances = customAmbulances.filter(a => a.station_id !== stationId && a.ambulance_id !== stationId);
+      try {
+        localStorage.setItem("ap_manual_ambulances", JSON.stringify(customAmbulances));
+      } catch (e) {}
+      renderManualAmbulances(customAmbulances);
+    }
+  } catch (err) {
+    console.error("Error deleting manual ambulance:", err);
+  }
+}
+
+// Renders all saved manual ambulances onto map and sidebar
+function renderManualAmbulances(ambulances) {
+  layers.manualAmbulances.clearLayers();
+
+  const totalCount = ambulances ? ambulances.length : 0;
+
+  // Update counters
+  const statPillEl = document.getElementById("stat-manual-amb");
+  if (statPillEl) statPillEl.textContent = totalCount;
+
+  const badgeEl = document.getElementById("custom-amb-badge");
+  if (badgeEl) badgeEl.textContent = `${totalCount} Saved`;
+
+  const legendCountEl = document.getElementById("legend-custom-count");
+  if (legendCountEl) legendCountEl.textContent = totalCount;
+
+  // Render Sidebar List
+  const listContainer = document.getElementById("custom-ambulances-list");
+  if (listContainer) {
+    if (totalCount === 0) {
+      listContainer.innerHTML = `
+        <div class="custom-empty-state" style="text-align:center; padding: 12px 8px; background: rgba(15, 23, 42, 0.4); border-radius:6px; border: 1px dashed var(--border-color);">
+          <i class="fa-solid fa-truck-medical" style="font-size: 1.4rem; color: #64748b; margin-bottom: 4px;"></i>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">No custom ambulances placed yet.<br>Click <strong>"Place Ambulance Manually"</strong> or click any village to station one.</p>
+        </div>
+      `;
+    } else {
+      listContainer.innerHTML = ambulances.map(stn => {
+        const safeLng = clampCoastline(stn.lat, stn.lng);
+        return `
+          <div class="custom-amb-card" id="manual-card-${stn.station_id}">
+            <div class="custom-amb-header">
+              <span class="custom-amb-name"><i class="fa-solid fa-star" style="color:#fbbf24;"></i> ${stn.name}</span>
+              <span style="font-size:0.68rem; background:rgba(251, 191, 36, 0.2); color:#fbbf24; padding:1px 5px; border-radius:3px; font-weight:700;">108 BASE</span>
+            </div>
+            <div class="custom-amb-meta">
+              <span><i class="fa-solid fa-location-dot"></i> ${stn.mandal} Mdl, ${stn.district}</span><br>
+              <span style="color:#94a3b8;"><i class="fa-solid fa-crosshairs"></i> ${stn.lat.toFixed(4)}, ${safeLng.toFixed(4)} (12 km Golden Hour)</span>
+            </div>
+            <div class="custom-amb-actions">
+              <button class="btn-amb-fly" onclick="focusAmbulance(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-expand"></i> Fly To
+              </button>
+              <button class="btn-amb-fly" style="background:rgba(239, 68, 68, 0.15); border-color:#ef4444; color:#f87171;" onclick="handleAccidentReport(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}', '${stn.district.replace(/'/g, "\\'")}', '${stn.mandal.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-truck-medical"></i> Test Dispatch
+              </button>
+              <button class="btn-amb-delete" title="Permanently delete this station" onclick="deleteManualAmbulance('${stn.station_id}')">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // Render on Map
+  if (!ambulances || ambulances.length === 0) return;
+
+  ambulances.forEach(stn => {
+    const safeLng = clampCoastline(stn.lat, stn.lng);
+
+    // 1. Golden Hour 12 km Coverage Zone Circle (Gold/Emerald)
+    const halo = L.circle([stn.lat, safeLng], {
+      radius: (stn.coverage_radius_km || 12.0) * 1000,
+      color: "#fbbf24",
+      weight: 2,
+      dashArray: "6, 6",
+      fillColor: "#f59e0b",
+      fillOpacity: 0.14
+    });
+    layers.manualAmbulances.addLayer(halo);
+
+    // 2. Custom Station Marker with Star Badge
+    const customIcon = L.divIcon({
+      className: "custom-div-icon",
+      html: `
+        <div class="marker-manual-ambulance">
+          <i class="fa-solid fa-truck-medical"></i>
+          <div class="star-badge">★</div>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18]
+    });
+
+    const marker = L.marker([stn.lat, safeLng], { icon: customIcon });
+
+    marker.bindTooltip(`<b>⭐ CUSTOM 108: ${stn.name}</b>`, {
+      permanent: true,
+      direction: "bottom",
+      className: "bold-map-label ambulance-label",
+      offset: [0, 10]
+    });
+
+    marker.bindPopup(`
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:240px;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <strong style="color:#059669; font-size:13px;"><i class="fa-solid fa-star" style="color:#fbbf24;"></i> Permanently Stationed 108 Unit</strong>
+        </div>
+        <strong style="font-size:13px; color:#0f172a;">${stn.name}</strong><br>
+        <strong>Mandal:</strong> ${stn.mandal} | <strong>District:</strong> ${stn.district}<br>
+        <strong>Coordinates:</strong> ${stn.lat.toFixed(4)}, ${safeLng.toFixed(4)}<br>
+        <strong>Vehicle Class:</strong> <span style="background:#dcfce7; color:#166534; padding:1px 5px; border-radius:3px; font-weight:700;">${stn.allocated_vehicle_type || 'ALS - Custom Base'}</span><br>
+        <strong>Paramedic Crew:</strong> ${stn.paramedic_crew || 3} Certified Personnel<br>
+        <strong>Life Support Equipment:</strong> ${(stn.equipment || ['ICU Ventilator', 'Defibrillator', 'Oxygen']).join(', ')}<br>
+        <strong>Coverage Radius:</strong> ${stn.coverage_radius_km || 12.0} km (Golden Hour Shield)<br>
+        <div style="margin-top:6px; padding:4px 6px; background:#fef3c7; border:1px solid #fde68a; border-radius:4px; font-size:11px; color:#92400e;">
+          <i class="fa-solid fa-shield-halved"></i> <strong>Permanent Unit:</strong> Persists across website reloads & server restarts.
+        </div>
+        <div style="margin-top:8px; display:flex; gap:6px;">
+          <button onclick="handleAccidentReport(${stn.lat}, ${safeLng}, '${stn.name.replace(/'/g, "\\'")}', '${stn.district.replace(/'/g, "\\'")}', '${stn.mandal.replace(/'/g, "\\'")}')" style="flex:1; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer;">
+            <i class="fa-solid fa-truck-medical"></i> Test Dispatch
+          </button>
+          <button onclick="deleteManualAmbulance('${stn.station_id}')" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer;">
+            <i class="fa-solid fa-trash-can"></i> Delete
+          </button>
+        </div>
+      </div>
+    `);
+
+    layers.manualAmbulances.addLayer(marker);
+  });
+}
+
+function focusAmbulance(lat, lng, name) {
+  const safeLng = clampCoastline(lat, lng);
+  map.flyTo([lat, safeLng], 14, { duration: 1.2 });
+
+  const halo = L.circleMarker([lat, safeLng], {
+    radius: 20,
+    color: '#fbbf24',
+    fillColor: '#fbbf24',
+    fillOpacity: 0.45,
+    weight: 3
+  }).addTo(map);
+
+  halo.bindTooltip(`<b>⭐ ${name}</b>`, {
+    permanent: true,
+    direction: 'top',
+    className: 'bold-map-label'
+  }).openTooltip();
+
+  setTimeout(() => {
+    map.removeLayer(halo);
+  }, 5000);
+}
+
 
 function setupVillageSearch() {
   const searchInput = document.getElementById("village-search-input");
@@ -1254,10 +1633,13 @@ function renderFilteredPlaces() {
         </div>
         <div class="place-card-actions">
           <button class="btn-place-zoom" onclick="focusOnPlace(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.type}')">
-            <i class="fa-solid fa-crosshairs"></i> View on Map
+            <i class="fa-solid fa-crosshairs"></i> View
           </button>
           <button class="btn-place-dispatch" onclick="handleAccidentReport(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}')">
-            <i class="fa-solid fa-truck-medical"></i> Dispatch 108
+            <i class="fa-solid fa-truck-medical"></i> Dispatch
+          </button>
+          <button class="btn-place-zoom" style="color:#fbbf24; border-color:rgba(245, 158, 11, 0.4); background:rgba(245, 158, 11, 0.1);" title="Permanently station a 108 Ambulance here" onclick="saveManualAmbulance(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")} 108 Base', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')">
+            <i class="fa-solid fa-star"></i> Station
           </button>
         </div>
       </div>

@@ -50,6 +50,10 @@
         <span class="label">Baseline Fleet</span>
         <span class="val" id="stat-baseline">{{ baseline_ambulances_count }}</span>
       </div>
+      <div class="stat-pill highlight-gold" title="Total Manually Placed Ambulances">
+        <span class="label">Custom 108s</span>
+        <span class="val" id="stat-manual-amb">0</span>
+      </div>
       <a href="/api/export_report" class="btn-export" title="Export Station Deployment CSV">
         <i class="fa-solid fa-file-arrow-down"></i> Export Report
       </a>
@@ -111,6 +115,36 @@
         <button id="btn-run-optimization" class="btn btn-primary btn-block">
           <i class="fa-solid fa-bolt"></i> Recompute Optimal Positioning
         </button>
+
+        <!-- Manual Ambulance Placement Action -->
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+          <button id="btn-toggle-manual-placement" class="btn btn-warning btn-block" style="font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <i class="fa-solid fa-location-crosshairs"></i> 📍 Place Ambulance Manually
+          </button>
+          <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 5px;">
+            Placements are <strong>saved permanently</strong> across website reloads.
+          </div>
+        </div>
+      </section>
+
+      <!-- Saved Custom Ambulances Panel -->
+      <section class="panel custom-ambulances-panel" id="custom-ambulances-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-star" style="color: #fbbf24;"></i> Saved Custom Ambulances</h3>
+          <span class="badge-live" id="custom-amb-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; border-color: #fbbf24;">0 Saved</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+          <span style="font-size: 0.74rem; color: var(--text-muted);">Permanently stored stations</span>
+          <button id="btn-quick-place-here" class="btn-text-action" style="color:#fbbf24; font-size:0.75rem;" title="Click anywhere on the map to add station">
+            <i class="fa-solid fa-plus"></i> Place Station
+          </button>
+        </div>
+        <div id="custom-ambulances-list" class="custom-ambulances-list">
+          <div class="custom-empty-state" style="text-align:center; padding: 12px 8px; background: rgba(15, 23, 42, 0.4); border-radius:6px; border: 1px dashed var(--border-color);">
+            <i class="fa-solid fa-truck-medical" style="font-size: 1.4rem; color: #64748b; margin-bottom: 4px;"></i>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">No custom ambulances placed yet.<br>Click <strong>"Place Ambulance Manually"</strong> or click any village to station one.</p>
+          </div>
+        </div>
       </section>
 
       <!-- Total District Places Directory & Explorer -->
@@ -247,10 +281,27 @@
     <section class="map-section">
       <div id="map"></div>
 
+      <!-- Interactive Manual Placement Notification Banner -->
+      <div id="placement-mode-banner" class="placement-mode-banner hidden">
+        <div class="placement-banner-inner">
+          <i class="fa-solid fa-location-crosshairs pulse-icon" style="color: #fbbf24; font-size: 1.2rem;"></i>
+          <span><strong>Manual Placement Active:</strong> Click anywhere on the map or village to station a permanent 108 Ambulance.</span>
+          <button id="btn-cancel-placement" class="btn btn-sm btn-secondary" style="margin-left: 8px;">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+        </div>
+      </div>
+
       <!-- Map Floating Controls & Legend -->
       <div class="map-floating-overlay">
         <div class="map-legend">
           <div class="legend-title"><i class="fa-solid fa-layer-group"></i> Map Layers & Legend</div>
+          <div class="legend-item" style="background: rgba(251, 191, 36, 0.1); border-radius: 4px; padding: 2px 4px; margin-bottom: 4px;">
+            <input type="checkbox" id="layer-manual-ambulances" checked>
+            <label for="layer-manual-ambulances">
+              <span class="legend-color-dot" style="background:#fbbf24; border:1px solid #f59e0b;"></span> <strong>⭐ Custom 108 Stations (<span id="legend-custom-count">0</span>)</strong>
+            </label>
+          </div>
           <div class="legend-item">
             <input type="checkbox" id="layer-opt-ambulances" checked>
             <label for="layer-opt-ambulances">
