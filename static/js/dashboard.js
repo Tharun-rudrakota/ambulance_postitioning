@@ -26,7 +26,6 @@ let currentBlackspots = [];
 let currentOptimalStations = [];
 let currentReadyStations = [];
 let customAmbulances = [];
-let isManualPlacementMode = false;
 let allMandals = [];
 let currentDistrictPlaces = [];
 let currentDistrictBounds = null;
@@ -141,13 +140,9 @@ function initMap() {
   // Add operational layer groups to map
   Object.values(layers).forEach(layer => layer.addTo(map));
 
-  // Map Click Listener: User can place ambulance manually OR trigger accident dispatch
+  // Map Click Listener: User can click anywhere in AP to report an accident
   map.on("click", (e) => {
-    if (isManualPlacementMode) {
-      openPlacementConfirmationPopup(e.latlng.lat, e.latlng.lng);
-    } else {
-      handleAccidentReport(e.latlng.lat, e.latlng.lng);
-    }
+    handleAccidentReport(e.latlng.lat, e.latlng.lng);
   });
 }
 
@@ -204,29 +199,7 @@ function setupEventListeners() {
     toggleLayer(layers.traumaCenters, e.target.checked);
   });
 
-  // Toggle Manual Placement Mode Buttons
-  const btnTogglePlacement = document.getElementById("btn-toggle-manual-placement");
-  if (btnTogglePlacement) {
-    btnTogglePlacement.addEventListener("click", () => {
-      toggleManualPlacementMode();
-    });
-  }
-
-  const btnQuickPlace = document.getElementById("btn-quick-place-here");
-  if (btnQuickPlace) {
-    btnQuickPlace.addEventListener("click", () => {
-      toggleManualPlacementMode(true);
-    });
-  }
-
-  const btnCancelPlacement = document.getElementById("btn-cancel-placement");
-  if (btnCancelPlacement) {
-    btnCancelPlacement.addEventListener("click", () => {
-      toggleManualPlacementMode(false);
-    });
-  }
-
-  // Place Ambulance Position Nearer Button
+  // Manual Button: Place Ambulance Nearer (Save Time)
   const btnPlaceNearer = document.getElementById("btn-place-ambulance-nearer");
   if (btnPlaceNearer) {
     btnPlaceNearer.addEventListener("click", () => {
@@ -590,7 +563,7 @@ function renderBlackspots(blackspots) {
       offset: [0, -8]
     });
     marker.bindPopup(`
-      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:200px;">
+      <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:210px;">
         <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-triangle-exclamation"></i> Blackspot: ${bs.location_name}</strong><br>
         <strong>Corridor:</strong> ${bs.corridor}<br>
         <strong>District:</strong> ${bs.district}<br>
@@ -599,9 +572,14 @@ function renderBlackspots(blackspots) {
         <strong>Severity Index:</strong> ${bs.severity_index}<br>
         <strong>Primary Cause:</strong> ${bs.accident_causes}<br>
         <strong>High Risk Window:</strong> ${bs.peak_time_window}<br>
-        <button onclick="handleAccidentReport(${bs.lat}, ${safeLng}, '${bs.location_name.replace(/'/g, "\\'")}')" style="margin-top:6px; background:#ef4444; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;">
-          <i class="fa-solid fa-truck-medical"></i> Test Dispatch Here
-        </button>
+        <div style="margin-top:7px; display:flex; flex-direction:column; gap:5px;">
+          <button onclick="handleAccidentReport(${bs.lat}, ${safeLng}, '${bs.location_name.replace(/'/g, "\\'")}', '${bs.district.replace(/'/g, "\\'")}', 'Corridor')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
+            <i class="fa-solid fa-truck-medical"></i> 🚨 Test Dispatch Here
+          </button>
+          <button onclick="placeAmbulanceNearer(${bs.lat}, ${safeLng}, '${bs.location_name.replace(/'/g, "\\'")} Blackspot', '${bs.district.replace(/'/g, "\\'")}', 'Corridor')" style="background:#10b981; color:#fff; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <i class="fa-solid fa-truck-fast"></i> ⚡ Click Manual Button to Place Ambulance Nearer
+          </button>
+        </div>
       </div>
     `);
     layers.blackspots.addLayer(marker);
@@ -749,8 +727,8 @@ function renderVillages(villages) {
           <button onclick="handleAccidentReport(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} (${v.mandal} Mdl)', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#ef4444; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch Here
           </button>
-          <button onclick="saveManualAmbulance(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} 108 Base', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')" style="background:#f59e0b; color:#0f172a; border:none; border-radius:4px; padding:5px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
-            <i class="fa-solid fa-star"></i> ⭐ Station Permanent 108 Ambulance Here
+          <button onclick="placeAmbulanceNearer(${v.lat}, ${safeLng}, '${v.village_name.replace(/'/g, "\\'")} 108 Base', '${v.district.replace(/'/g, "\\'")}', '${v.mandal.replace(/'/g, "\\'")}')" style="background:#10b981; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <i class="fa-solid fa-truck-fast"></i> ⚡ Click Manual Button to Place Ambulance Nearer
           </button>
         </div>
       </div>
@@ -815,8 +793,8 @@ function renderVillageDangerSpots(dangerSpots) {
           <button onclick="handleAccidentReport(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone (${ds.mandal} Mdl)', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#dc2626; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%;">
             <i class="fa-solid fa-truck-medical"></i> 🚨 Test Emergency Dispatch to Danger Zone
           </button>
-          <button onclick="saveManualAmbulance(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} 108 Base', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')" style="background:#f59e0b; color:#0f172a; border:none; border-radius:4px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
-            <i class="fa-solid fa-star"></i> ⭐ Station Permanent 108 Ambulance Here
+          <button onclick="placeAmbulanceNearer(${safeLat}, ${safeLng}, '${ds.village_name.replace(/'/g, "\\'")} Danger Zone', '${ds.district.replace(/'/g, "\\'")}', '${ds.mandal.replace(/'/g, "\\'")}')" style="background:#10b981; color:#fff; border:none; border-radius:4px; padding:6px 10px; font-size:11px; font-weight:700; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:5px;">
+            <i class="fa-solid fa-truck-fast"></i> ⚡ Click Manual Button to Place Ambulance Nearer
           </button>
         </div>
       </div>
@@ -858,144 +836,9 @@ async function placeAmbulanceNearer(lat, lng, locationLabel = "Danger Spot", dis
 // Manual Ambulance Placement & Multi-Session Persistence Implementation
 // ==========================================================================
 
-// Toggle Manual Placement Mode
-function toggleManualPlacementMode(forceState = null) {
-  if (forceState !== null) {
-    isManualPlacementMode = forceState;
-  } else {
-    isManualPlacementMode = !isManualPlacementMode;
-  }
-
-  const btn = document.getElementById("btn-toggle-manual-placement");
-  const banner = document.getElementById("placement-mode-banner");
-
-  if (isManualPlacementMode) {
-    document.body.classList.add("manual-placement-mode");
-    if (btn) {
-      btn.classList.add("active");
-      btn.innerHTML = '<i class="fa-solid fa-crosshairs pulse-icon"></i> 📍 Click Map to Station 108 Base';
-    }
-    if (banner) banner.classList.remove("hidden");
-  } else {
-    document.body.classList.remove("manual-placement-mode");
-    if (btn) {
-      btn.classList.remove("active");
-      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> 📍 Place Ambulance Manually';
-    }
-    if (banner) banner.classList.add("hidden");
-  }
-}
-
-// Client-side helper to find nearest mandal for detected coordinates
-function findNearestMandalClient(lat, lng) {
-  if (!allMandals || allMandals.length === 0) return null;
-  let bestM = null;
-  let minD = Infinity;
-  for (const m of allMandals) {
-    const d = Math.pow(m.lat - lat, 2) + Math.pow(m.lng - lng, 2);
-    if (d < minD) {
-      minD = d;
-      bestM = m;
-    }
-  }
-  return bestM;
-}
-
-// Opens placement confirmation popup on map click during placement mode
-function openPlacementConfirmationPopup(rawLat, rawLng) {
-  const safeLat = Math.round(rawLat * 100000) / 100000;
-  const safeLng = clampCoastline(safeLat, rawLng);
-  const nearestM = findNearestMandalClient(safeLat, safeLng);
-  const mandalName = nearestM ? nearestM.mandal_name : "Local";
-  const districtName = nearestM ? nearestM.district : "Andhra Pradesh";
-  const defaultStnName = `${mandalName} Custom 108 Base`;
-
-  const popupContent = document.createElement("div");
-  popupContent.className = "manual-placement-popup";
-  popupContent.innerHTML = `
-    <h4><i class="fa-solid fa-star" style="color:#fbbf24;"></i> Station Permanent 108 Base</h4>
-    <div style="font-size:11px; color:#475569; margin-bottom:6px; background:#f8fafc; padding:4px 6px; border-radius:4px; border:1px solid #e2e8f0;">
-      <strong>Zone:</strong> ${mandalName} Mandal, ${districtName}<br>
-      <span style="font-size:10px; color:#64748b;">Coordinates: ${safeLat.toFixed(4)}, ${safeLng.toFixed(4)}</span>
-    </div>
-    <div class="form-group-sm">
-      <label for="input-custom-stn-name">Station / Unit Name:</label>
-      <input type="text" id="input-custom-stn-name" value="${defaultStnName}" style="font-weight:600;" />
-    </div>
-    <div class="form-group-sm">
-      <label for="select-custom-stn-type">Vehicle Class & Equipment:</label>
-      <select id="select-custom-stn-type">
-        <option value="Advanced Life Support (ALS) - Custom Base" selected>ALS (ICU Ventilator, Defibrillator, Paramedic Crew of 3)</option>
-        <option value="Basic Life Support (BLS) - Custom Post">BLS (Oxygen Cylinder, First Aid, Paramedic Crew of 2)</option>
-      </select>
-    </div>
-    <button id="btn-popup-save-manual" class="btn-confirm-save">
-      <i class="fa-solid fa-floppy-disk"></i> Confirm & Save Permanently
-    </button>
-  `;
-
-  const popup = L.popup({ minWidth: 260 })
-    .setLatLng([safeLat, safeLng])
-    .setContent(popupContent)
-    .openOn(map);
-
-  setTimeout(() => {
-    const saveBtn = document.getElementById("btn-popup-save-manual");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", async () => {
-        const nameInput = document.getElementById("input-custom-stn-name");
-        const typeSelect = document.getElementById("select-custom-stn-type");
-        const stnName = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : defaultStnName;
-        const vehicleType = typeSelect ? typeSelect.value : "Advanced Life Support (ALS) - Custom Base";
-
-        map.closePopup();
-        toggleManualPlacementMode(false);
-        await saveManualAmbulance(safeLat, safeLng, stnName, districtName, mandalName, vehicleType);
-      });
-    }
-  }, 80);
-}
-
-// Saves a manual ambulance permanently to disk and updates localStorage
-async function saveManualAmbulance(lat, lng, name = "Custom 108 Base", district = "", mandal = "", vehicleType = "Advanced Life Support (ALS) - Custom Base") {
-  try {
-    const res = await fetch("/api/manual_ambulances", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lat: lat,
-        lng: lng,
-        name: name,
-        district: district,
-        mandal: mandal,
-        vehicle_type: vehicleType,
-        radius_km: 12.0
-      })
-    });
-
-    const data = await res.json();
-    if (data.status === "success" && data.ambulance) {
-      const newAmb = data.ambulance;
-      // Filter out duplicate ID and prepend
-      customAmbulances = customAmbulances.filter(a => a.station_id !== newAmb.station_id);
-      customAmbulances.unshift(newAmb);
-
-      // Save to localStorage backup
-      try {
-        localStorage.setItem("ap_manual_ambulances", JSON.stringify(customAmbulances));
-      } catch (e) {}
-
-      // Render updated custom ambulances
-      renderManualAmbulances(customAmbulances);
-
-      // Pan & fly map to newly stationed ambulance
-      map.flyTo([newAmb.lat, newAmb.lng], 13, { duration: 1.0 });
-
-      return newAmb;
-    }
-  } catch (err) {
-    console.error("Error saving manual ambulance:", err);
-  }
+// Manual placement helper: calls placeAmbulanceNearer to station unit and persist
+async function saveManualAmbulance(lat, lng, name = "Danger Spot", district = "General", mandal = "Local") {
+  return placeAmbulanceNearer(lat, lng, name, district, mandal);
 }
 
 // Loads manual ambulances from server with localStorage fallback
@@ -1400,9 +1243,64 @@ async function handleAccidentReport(lat, lng, locationLabel = "", district = "Ge
       document.getElementById("disp-hospital-eta").textContent = `${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes || '--'} min)`;
       document.getElementById("disp-apex-hospital").textContent = apexCenter.name ? `${apexCenter.name} (${apexCenter.distance_km} km)` : '--';
 
-      // Incident popup on crash marker
+      // 4. Update Automated CAD Dispatch Notice and Manual Placement Button
+      const isNearerUnit = amb.is_custom_nearer || amb.is_manual || metrics.estimated_eta_minutes <= 2.5;
+      const cadNotice = document.getElementById("disp-cad-notice");
+      const btnPlaceNearer = document.getElementById("btn-place-ambulance-nearer");
+
+      if (isNearerUnit) {
+        if (cadNotice) {
+          cadNotice.className = "disp-cad-notice placed";
+          cadNotice.innerHTML = `
+            <div class="disp-cad-title">
+              <i class="fa-solid fa-circle-check"></i> Automated CAD Dispatch: Nearer Ambulance Active
+            </div>
+            <div class="disp-cad-sub">⚡ Stationed 108 unit dispatched (&lt; 2 min ETA). Saved permanently across website reloads.</div>
+          `;
+        }
+        if (btnPlaceNearer) {
+          btnPlaceNearer.style.display = "none";
+        }
+      } else {
+        if (cadNotice) {
+          cadNotice.className = "disp-cad-notice";
+          cadNotice.innerHTML = `
+            <div class="disp-cad-title">
+              <i class="fa-solid fa-triangle-exclamation"></i> Automated CAD Dispatch ( Manual Placement Required)
+            </div>
+            <div class="disp-cad-sub">You have to click any manual button to place an ambulance nearer.</div>
+          `;
+        }
+        if (btnPlaceNearer) {
+          btnPlaceNearer.style.display = "flex";
+          btnPlaceNearer.innerHTML = `<i class="fa-solid fa-truck-fast"></i> ⚡ Click Manual Button to Place Ambulance Nearer`;
+        }
+      }
+
+      // Incident popup on crash marker with CAD notice & manual button
+      let cadNoticePopupHtml = "";
+      if (isNearerUnit) {
+        cadNoticePopupHtml = `
+          <div style="margin-top:6px; padding:5px 8px; background:#f0fdf4; border:1px solid #10b981; border-radius:4px; font-size:11px; color:#15803d; font-weight:600;">
+            <i class="fa-solid fa-shield-check"></i> Nearer 108 Ambulance Stationed (&lt; 2 min ETA)
+          </div>
+        `;
+      } else {
+        cadNoticePopupHtml = `
+          <div style="margin-top:7px; padding:6px 8px; background:#fffbeb; border:1px solid #f59e0b; border-radius:4px; font-size:11px;">
+            <div style="font-weight:700; color:#d97706; display:flex; align-items:center; gap:4px;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Automated CAD Dispatch ( Manual Placement Required)
+            </div>
+            <div style="font-size:10px; color:#78350f; margin-top:2px;">You have to click any manual button to place an ambulance nearer.</div>
+            <button onclick="placeAmbulanceNearer(${lat}, ${lng}, '${(locationLabel || 'Incident Spot').replace(/'/g, "\\'")}', '${district.replace(/'/g, "\\'")}', '${mandal.replace(/'/g, "\\'")}')" style="margin-top:6px; width:100%; background:#10b981; color:#fff; border:none; border-radius:4px; padding:6px 8px; font-weight:700; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+              <i class="fa-solid fa-truck-fast"></i> ⚡ Click Manual Button to Place Ambulance Nearer
+            </button>
+          </div>
+        `;
+      }
+
       incidentMarker.bindPopup(`
-        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:225px;">
+        <div style="font-family:'Inter', sans-serif; font-size:12px; color:#0f172a; min-width:240px;">
           <strong style="color:#ef4444; font-size:13px;"><i class="fa-solid fa-car-burst"></i> Emergency Incident Scene</strong><br>
           ${locationLabel ? `<strong>Location:</strong> ${locationLabel}<br>` : ''}
           <strong>Dispatched Unit:</strong> ${amb.name} (${metrics.road_distance_km} km)<br>
@@ -1413,7 +1311,8 @@ async function handleAccidentReport(lat, lng, locationLabel = "", district = "Ge
           <hr style="margin:5px 0; border:0; border-top:1px solid #e2e8f0;">
           <strong style="color:#8b5cf6;"><i class="fa-solid fa-hospital"></i> Referral Facility:</strong> ${nearestHosp.name}<br>
           <strong>Transfer Route:</strong> ${nearestHosp.distance_km} km (~${nearestHosp.eta_minutes} min)<br>
-          <strong>Golden Hour Status:</strong> ${metrics.golden_hour_status}
+          <strong>Golden Hour Status:</strong> ${metrics.golden_hour_status}<br>
+          ${cadNoticePopupHtml}
         </div>
       `).openPopup();
 
@@ -1638,8 +1537,8 @@ function renderFilteredPlaces() {
           <button class="btn-place-dispatch" onclick="handleAccidentReport(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}')">
             <i class="fa-solid fa-truck-medical"></i> Dispatch
           </button>
-          <button class="btn-place-zoom" style="color:#fbbf24; border-color:rgba(245, 158, 11, 0.4); background:rgba(245, 158, 11, 0.1);" title="Permanently station a 108 Ambulance here" onclick="saveManualAmbulance(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")} 108 Base', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}', 'Advanced Life Support (ALS) - Custom Base')">
-            <i class="fa-solid fa-star"></i> Station
+          <button class="btn-place-zoom" style="color:#10b981; border-color:rgba(16, 185, 129, 0.4); background:rgba(16, 185, 129, 0.1);" title="Click manual button to place ambulance nearer" onclick="placeAmbulanceNearer(${p.lat}, ${safeLng}, '${p.name.replace(/'/g, "\\'")}', '${p.district.replace(/'/g, "\\'")}', '${p.mandal.replace(/'/g, "\\'")}')">
+            <i class="fa-solid fa-truck-fast"></i> Nearer
           </button>
         </div>
       </div>
@@ -1685,3 +1584,12 @@ function fitDistrictBounds() {
     map.fitBounds(currentDistrictBounds, { padding: [40, 40] });
   }
 }
+
+// Global window exposure for inline Leaflet handlers
+window.placeAmbulanceNearer = placeAmbulanceNearer;
+window.saveManualAmbulance = saveManualAmbulance;
+window.deleteManualAmbulance = deleteManualAmbulance;
+window.handleAccidentReport = handleAccidentReport;
+window.focusOnPlace = focusOnPlace;
+window.fitDistrictBounds = fitDistrictBounds;
+
