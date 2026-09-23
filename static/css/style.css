@@ -99,6 +99,34 @@ body {
   margin-top: 2px;
 }
 
+.header-cad-badge {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1.5px solid #f59e0b;
+  border-radius: 8px;
+  padding: 5px 14px;
+  margin-left: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.header-cad-title {
+  font-weight: 800;
+  color: #fbbf24;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.2px;
+}
+
+.header-cad-sub {
+  color: #e2e8f0;
+  font-size: 0.72rem;
+  margin-top: 1px;
+}
+
 .header-stats {
   display: flex;
   align-items: center;
